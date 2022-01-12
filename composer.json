@@ -1,0 +1,19 @@
+{
+    "name": "nikola/zadatak_imgur_clone_ispravka",
+    "autoload": {
+        "psr-4": {
+            "app\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "nikolacarapic02",
+            "email": "nikola.carapic@quantoxtechnology.com"
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.4",
+        "bramus/router": "^1.6",
+        "twig/twig": "^2.0"
+    }
+}

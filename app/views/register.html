@@ -1,0 +1,29 @@
+{% extends 'layout/auth.html' %}
+{% block content %}
+<h1>Create an account</h1>
+<form action="" method="post">
+    <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" {% if errors.username == '' %} class = "form-control" value = {{ values.username|join() }} {% else %} class = "form-control is-invalid" {% endif %}>
+        {% if errors.username != '' %} <div class="invalid-feedback">{{ errors.username|join() }}</div> {% endif %}
+
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="text" name="email" {% if errors.email == '' %} class = "form-control" value = {{ values.email|join() }} {% else %} class = "form-control is-invalid" {% endif %}>
+        {% if errors.email != '' %} <div class="invalid-feedback">{{ errors.email|join() }}</div> {% endif %}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" {% if errors.password == '' %} class = "form-control" {% else %} class = "form-control is-invalid" {% endif %}>
+        {% if errors.password != '' %} <div class="invalid-feedback">{{ errors.password|join() }}</div> {% endif %}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" name="confirm_password" {% if errors.confirm_password == '' %} class = "form-control" {% else %} class = "form-control is-invalid" {% endif %}>
+        {% if errors.confirm_password != '' %} <div class="invalid-feedback">{{ errors.confirm_password|join() }}</div> {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}
