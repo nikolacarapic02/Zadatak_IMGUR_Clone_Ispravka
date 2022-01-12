@@ -19,6 +19,7 @@ class Application
     public Session $session;
 
     protected array $errors = [];
+    protected ?array $registeredUser = [];
 
     public function __construct($config)
     {
@@ -30,42 +31,83 @@ class Application
         $this->request = new Request();
         $this->user = new User();
         $this->session = new Session();
+
+        if(!$this->isGuest())
+        {
+            $this->registeredUser = $this->user->pdo->get($this->session->getSession('user'));
+        }
+        else
+        {
+            $this->registeredUser = null;
+        }
     }
 
-    public function validation()
+    public function validation($action)
     {
         $data = $this->request->getData();
 
-        if(empty($data['username']))
+        if($action === 'register')
         {
-            $this->errors['username'] = 'This field is required!';
-        }
-        
-        if(empty($data['email']))
-        {
-            $this->errors['email'] = 'This field is required!';
-        }
-        else if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL))
-        {
-            $this->errors['email'] =  'Email foramt must be correct!';
-        }
+            if(empty($data['username']))
+            {
+                $this->errors['username'] = 'This field is required!';
+            }
+            
+            if(empty($data['email']))
+            {
+                $this->errors['email'] = 'This field is required!';
+            }
+            else if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL))
+            {
+                $this->errors['email'] =  'Email foramt must be correct!';
+            }
 
-        if(empty($data['password']))
-        {
-            $this->errors['password'] = 'This field is required!';
-        }
-        else if(strlen($data['password']) < 8)
-        {
-            $this->errors['password'] = 'The password must have at least 8 characters!';
-        }
+            if(empty($data['password']))
+            {
+                $this->errors['password'] = 'This field is required!';
+            }
+            else if(strlen($data['password']) < 8)
+            {
+                $this->errors['password'] = 'The password must have at least 8 characters!';
+            }
 
-        if(empty($data['confirm_password']))
-        {
-            $this->errors['confirm_password'] ='This field is required!';
+            if(empty($data['confirm_password']))
+            {
+                $this->errors['confirm_password'] ='This field is required!';
+            }
+            else if($data['confirm_password'] != $data['password'])
+            {
+                $this->errors['confirm_password'] ='This field must be same as field password!';
+            }
         }
-        else if($data['confirm_password'] != $data['password'])
+        else if($action === 'login')
         {
-            $this->errors['confirm_password'] ='This field must be same as field password!';
+            $user = $this->user->pdo->login($data);
+
+            if(empty($data['email']))
+            {
+                $this->errors['email'] = 'This field is required!';
+            }
+            else if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL))
+            {
+                $this->errors['email'] =  'Email foramt must be correct!';
+            }
+            else if(empty($user))
+            {
+                $this->errors['email'] =  "Don't exist any account with this email!";
+            }
+
+            if(empty($data['password']))
+            {
+                $this->errors['password'] = 'This field is required!';
+            }
+            else if(!empty($user))
+            {
+                if(!password_verify($data['password'], $user[0]['password']))
+                {
+                    $this->errors['password'] = 'Password is incorrect!';
+                }
+            }
         }
     }
 
@@ -90,4 +132,21 @@ class Application
     {
         return $this->errors[$attribute];
     }
+
+    public function isGuest()
+    {
+        if(!key_exists('user', $_SESSION))
+        {
+            return true;
+        }
+    }
+
+    public function displayUserName()
+    {
+        if(!$this->isGuest())
+        {
+            return $this->registeredUser[0]['username'];
+        }
+    }
+
 }

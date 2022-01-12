@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\core\Application;
 use app\models\User;
 use app\models\Image;
 use app\models\Gallery;

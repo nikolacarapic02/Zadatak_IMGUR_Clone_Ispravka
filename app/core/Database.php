@@ -19,4 +19,41 @@ class Database
     {
         return $this->pdo->prepare($sql);
     }
+
+    //User
+
+    public function register($attributes)
+    {
+        $username = $attributes['username'];
+        $email = $attributes['email'];
+        $password = password_hash($attributes['password'], PASSWORD_DEFAULT);
+        $api_key = implode('-', str_split(substr(strtolower(md5(microtime().rand(1000, 9999))), 0, 30), 6));
+
+        $statement = $this->pdo->prepare("INSERT INTO user(username, email, password, api_key, role, nsfw, status) 
+        VALUES ('$username', '$email', '$password', '$api_key', 'user', 0, 'active')");
+
+        $statement->execute();
+    }
+
+    public function login($attributes)
+    {
+        $email = $attributes['email'];
+
+        $statement = $this->pdo->prepare("SELECT * FROM user WHERE email = '$email';");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function get($id)
+    {
+        $statement = $this->pdo->prepare("SELECT * FROM user WHERE id = '$id';");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    //Image
+
+    //Gallery
 }

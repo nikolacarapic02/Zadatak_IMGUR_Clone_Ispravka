@@ -17,9 +17,15 @@ class AuthController extends Controller
         $this->model = new User();
     }
 
+    public function index()
+    {
+        $value = $_SERVER['REQUEST_URI'];
+        return $this->view->render($value . '.html', ['title' => 'Register Page']);
+    }
+
     public function register()
     {
-        Application::$app->validation();
+        Application::$app->validation('register');
         
         if(Application::$app->hasErrors())
         {
@@ -39,15 +45,28 @@ class AuthController extends Controller
 
     public function login()
     {
-        $this->model->login();
+        Application::$app->validation('login');
 
-        Application::$app->response->redirectToAnotherPage('/profile');
-        return $this->view->render('profile.html', ['title' => 'Profile']);
+        $user = $this->model->login($_POST);
+
+        if(Application::$app->hasErrors())
+        {
+            return $this->view->render('login.html', [
+                'errors' => Application::$app->getErrors(),
+                'title' => 'Login',
+                'values' => Application::$app->request->getData()
+            ]);
+        }
+        else
+        {
+            Application::$app->session->setSession('user', $user[0]['id']);
+            Application::$app->response->redirectToAnotherPage('/profile');
+        }
     }
 
-    public function index()
+    public function logout()
     {
-        $value = $_SERVER['REQUEST_URI'];
-        return $this->view->render($value . '.html', ['title' => 'Register Page']);
+        $this->model->logout();
+        Application::$app->response->redirectToAnotherPage('/');
     }
 }

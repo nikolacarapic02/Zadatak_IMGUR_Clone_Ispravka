@@ -26,6 +26,7 @@ $twig = new Environment($loader);
 $app = new Application($config);
 
 $twig->addGlobal('_session', $app->session);
+$twig->addGlobal('_app', $app);
 
 //GET
 $app->router->get('/', function() use ($twig){
@@ -45,6 +46,7 @@ $app->router->get('/register', function() use ($twig){
 
 $app->router->get('/logout', function() use ($twig){
     $controller = new AuthController($twig);
+    echo $controller->logout();
 });
 
 $app->router->get('/profile', function() use ($twig){
