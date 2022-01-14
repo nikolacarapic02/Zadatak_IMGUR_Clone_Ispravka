@@ -1,7 +1,11 @@
 <?php
 
+use app\controllers\AboutController;
 use app\controllers\AuthController;
+use app\controllers\GalleriesController;
 use app\controllers\HomeController;
+use app\controllers\PhotosController;
+use app\controllers\ProfileController;
 use app\core\Application;
 use Dotenv\Dotenv;
 use Twig\Environment;
@@ -50,7 +54,8 @@ $app->router->get('/logout', function() use ($twig){
 });
 
 $app->router->get('/profile', function() use ($twig){
-    echo $twig->render('profile.html');
+    $controller = new ProfileController($twig);
+    echo $controller->index();
 });
 
 $app->router->get('/user_profile', function() use ($twig){
@@ -58,11 +63,13 @@ $app->router->get('/user_profile', function() use ($twig){
 });
 
 $app->router->get('/photos', function() use ($twig){
-    echo $twig->render('photos.html');
+    $controller = new PhotosController($twig);
+    echo $controller->index();
 });
 
 $app->router->get('/photo_details', function() use ($twig){
-    echo $twig->render('photo_details.html');
+    $controller = new PhotosController($twig);
+    echo $controller->details($_GET['id']);
 });
 
 $app->router->get('/user_photos', function() use ($twig){
@@ -70,11 +77,13 @@ $app->router->get('/user_photos', function() use ($twig){
 });
 
 $app->router->get('/galleries', function() use ($twig){
-    echo $twig->render('galleries.html');
+    $controller = new GalleriesController($twig);
+    echo $controller->index();
 });
 
 $app->router->get('/gallery_details', function() use ($twig){
-    echo $twig->render('gallery_details.html');
+    $controller = new GalleriesController($twig);
+    echo $controller->details($_GET['id']);
 });
 
 $app->router->get('/user_galleries', function() use ($twig){
@@ -82,7 +91,8 @@ $app->router->get('/user_galleries', function() use ($twig){
 });
 
 $app->router->get('/about', function() use ($twig){
-    echo $twig->render('about.html');
+    $controller = new AboutController($twig);
+    echo $controller->index();
 });
 
 $app->router->get('/moderator_logging', function() use ($twig){
@@ -102,7 +112,8 @@ $app->router->post('/register', function() use ($twig){
 });
 
 $app->router->post('/profile', function() use ($twig){
-    $twig->render('profile.html');
+    $controller = new ProfileController($twig);
+    echo $controller->create();
 });
 
 $app->router->post('/user_profile', function() use ($twig){
@@ -110,19 +121,14 @@ $app->router->post('/user_profile', function() use ($twig){
 });
 
 $app->router->post('/photo_details', function() use ($twig){
-    $twig->render('photo_details.html');
+    $controller = new PhotosController($twig);
+    echo $controller->details($_GET['id']);
 });
 
 $app->router->post('/gallery_details', function() use ($twig){
-    $twig->render('gallery_details.html');
+    $controller = new GalleriesController($twig);
+    echo $controller->details($_GET['id']);
 });
 
-try
-{
-    $app->router->run();
-}
-catch(Exception $e)
-{
-    $app->response->setStatusCode($e->getCode());
-    $twig->render('_error.html', ['exception' => ['message' => $e->getMessage()], ['code' => $e->getCode()]]);
-}
+$app->router->run();
+

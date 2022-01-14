@@ -1,1 +1,107 @@
 {% extends 'layout/main.html' %}
+
+{% block content %}
+{{ imageContent.details(id) }}
+<div class="container-fluid tm-container-content"> 
+    <div class="col-xl-8 col-lg-7 col-md-6 col-sm-12">
+        {% if not _app.isGuest() %}
+            {% if user.isYourImage(id) %}
+                <button type="button" class="btn btn-primary mb-3 {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" type="button" data-toggle="collapse" data-target="#collapseExample1" aria-expanded="false" aria-controls="collapseExample1" id="editButton">Edit <span class="fas fa-edit"></span></button>
+                <div class="collapse mt-2" id="collapseExample1">
+                    <form action = "", method = "post">
+                        <div class="form-group">
+                            <input type="text" name="new_name" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="New Image Name">
+                            <small id="emailHelp" class="form-text text-muted">Add a new image name.</small>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="slug" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="New Image Slug">
+                            <small id="emailHelp" class="form-text text-muted">Add a new iamge slug.</small>
+                        </div>
+                        <div class="form-group tm-text-right">
+                            <button type="submit" class="btn btn-primary" name="submit" >Edit</button>
+                        </div>
+                    </form>
+                </div>
+                <form action = "", method = "post">
+                    <button class="btn btn-primary mb-3 {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" value="1" type="submit" name="delete" id="editButton">Delete <span class="fas fa-trash-alt"></span></button>
+                </form>
+            </div>
+            {% elseif user.isModerator(_app.session.getSession('user')) %}
+                <button type="button" class="btn btn-primary {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" type="button" data-toggle="collapse" data-target="#collapseExample2" aria-expanded="false" aria-controls="collapseExample2" id="editButton">Edit <span class="fas fa-edit"></span></button>
+                <div class="collapse mt-2" id="collapseExample3">
+                    <form action = "", method = "post">
+                        <div class="btn-group" data-toggle="buttons">
+
+                            <label class="btn  form-check-label">
+                                <input type="checkbox"  autocomplete="off" name="nsfw" value="1" {% if imageContent.isNsfw(id) %} checked {% endif %}> <span class="checkText">NSFW</span>
+                            </label>
+
+                            <label class="btn form-check-label">
+                                <input type="checkbox"  autocomplete="off" name="hidden" value="1" {% if imageContent.isHidden(id) %} checked {% endif %}> <span class="checkText">Hidden</span>
+                            </label>
+
+                        </div>
+                        <div class="form-group tm-text-right">
+                            <button type="submit" class="btn btn-primary" name="submit" >Done</button>
+                        </div>
+                    </form>
+                </div>
+            {% elseif user.isAdmin(_app.session.getSession('user')) %}
+                <button type="button" class="btn btn-primary {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" type="button" data-toggle="collapse" data-target="#collapseExample3" aria-expanded="false" aria-controls="collapseExample3" id="editButton">Edit <span class="fas fa-edit"></span></button>
+                <div class="collapse mt-2" id="collapseExample3">
+                    <form action = "", method = "post">
+                        <div class="form-group">
+                            <input type="text" name="file_name" class="form-control rounded-0" placeholder="Name"/>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="slug" class="form-control rounded-0" placeholder="Slug"/>
+                        </div>
+                        <div class="form-group">
+                        <div class="btn-group" data-toggle="buttons">
+
+                            <label class="btn  form-check-label">
+                                <input type="checkbox"  autocomplete="off" name="nsfw" value="1" {% if imageContent.isNsfw(id) %} checked {% endif %}> <span class="checkText">NSFW</span>
+                            </label>
+
+                            <label class="btn form-check-label">
+                                <input type="checkbox"  autocomplete="off" name="hidden" value="1" {% if imageContent.isHidden(id) %} checked {% endif %}> <span class="checkText">Hidden</span>
+                            </label>
+
+                        </div>
+                        </div>
+                        <div class="form-group tm-text-right">
+                            <button type="submit" class="btn btn-primary" name="submit" >Send</button>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div> 
+</div>
+<div class="container mt-5 mb-5">
+    <div class="row"> 
+        <h2 class="tm-text-primary text-center">
+            Comments
+        </h2>
+    </div>
+    <div class="d-flex justify-content-center row">
+        <div class="col-md-8">
+            {{ imageContent.getComments(id) }}
+            <div class="bg-light p-2">
+                <form action="" method = "post">
+                    <div class="d-flex flex-row align-items-start"><img class="rounded-circle" src="assets/img/user.png" width="40">
+                        <textarea class="form-control ml-1 shadow-none textarea" name="comment"></textarea>
+                    </div>
+                    <div class="mt-2 text-right">
+                        <button class="btn btn-primary btn-sm shadow-none {% if (_app.isGuest()) or (user.isBanned(_app.session.getSession('user'))) %} disabled {% endif %}" type="submit">Post comment  <span class="fa fa-comment"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+</div>
+{% endblock %}

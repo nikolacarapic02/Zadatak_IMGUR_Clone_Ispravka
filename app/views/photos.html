@@ -1,1 +1,73 @@
 {% extends 'layout/main.html' %}
+
+{% block content %}
+<div class="container-fluid tm-container-content tm-mt-60">
+    <div class="row mb-2">
+        <h2 class="col-6 tm-text-primary">
+            Photos
+        </h2>
+        <div class="col-6 d-flex justify-content-end align-items-center">
+            <form action="/photos?page=" class="tm-text-primary">
+                Page <input type = "text" value = "{{ page }}"  size = "{{ page }}" class = "tm-input-paging tm-text-primary" name = "page"> of {{ numOfPages }}
+            </form>
+        </div>
+    </div>
+    <hr class="underline">
+    <div class="row tm-mb-90 tm-gallery">
+    {{ imageContent.get() }}
+    </div>
+    <div class="row tm-mb-90">
+        {% if pageNum > 1 %}
+            {% set pageNum = pageNum - 1 %}
+        {% endif %}
+        {% if numOfPages <= 4 %}
+        <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
+            <a href="/photos?page={{ pageNumPre }}" class="btn btn-primary tm-btn-prev mb-2  {% if page == 1 %} disabled {% endif %}" >Previous</a>
+            <div class="tm-paging d-flex">
+                {% set pageNum = 1 %}
+                <a href="/photos?page=1" class="btn {% if pageNum == page %} active {% endif %} {% if pageNum > numOfPages %} disabled {% endif %} tm-paging-link"> {{ pageNum }}</a>
+                {% set pageNum = pageNum + 1 %}
+                <a href="/photos?page=2" class="btn {% if pageNum == page %} active {% endif %} {% if pageNum > numOfPages %} disabled {% endif %} tm-paging-link">{{ pageNum }}</a>
+                {% set pageNum = pageNum + 1 %}
+                <a href="/photos?page=3" class="btn {% if pageNum == page %} active {% endif %} {% if pageNum > numOfPages %} disabled {% endif %} tm-paging-link">{{ pageNum }}</a>
+                {% set pageNum = pageNum + 1 %}
+                <a href="/photos?page=4" class="btn {% if pageNum == page %} active {% endif %} {% if pageNum > numOfPages %} disabled {% endif %} tm-paging-link">{{ pageNum }}</a>
+                {% set pageNum = pageNum + 1 %}
+            </div>
+            <a href="/photos?page={{ pageNumNext }}" class="btn btn-primary tm-btn-next mb-2 {% if page == numOfPages %} disabled {% endif %}" >Next</a>
+        </div>
+        {% elseif numOfPages - page > 2  %}
+        <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
+            <a href="/photos?page={{ pageNumPre }}" class="btn btn-primary tm-btn-prev mb-2 {% if page == 1 %} disabled {% endif %}">Previous</a>
+            <div class="tm-paging d-flex">
+                <a href="/photos?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ pageNum }}</a>
+                {% set pageNum = pageNum + 1 %}
+                <a href="/photos?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link"> {{ pageNum }}</a>
+                {% set pageNum = pageNum + 1 %}
+                <a href="/photos?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ pageNum }}</a>
+                {% set pageNum = pageNum + 1 %}
+                <a href="/photos?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ pageNum }}</a>
+                {% set pageNum = pageNum + 1 %}
+            </div>
+            <a href="/photos?page={{ pageNumNext }}" class="btn btn-primary tm-btn-next mb-2 {% if page == numOfPages %} disabled {% endif %}">Next</a>
+        </div>
+        {% elseif numOfPages - page <= 2 %}
+        <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
+            <a href="/photos?page={{ pageNumPre }}" class="btn btn-primary tm-btn-prev mb-2 {% if page == 1 %} disabled {% endif %}">Previous</a>
+            <div class="tm-paging d-flex">
+                {% set pageNum = numOfPages - 3 %}
+                <a href="/photos?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ numOfPages - 3 }}</a>
+                {% set pageNum = numOfPages - 2 %}
+                <a href="/photos?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ numOfPages - 2 }}</a>
+                {% set pageNum = numOfPages - 1 %}
+                <a href="/photos?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ numOfPages - 1 }}</a>
+                {% set pageNum = numOfPages %}
+                <a href="/photos?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ numOfPages }}</a>
+            </div>
+            <a href="/photos?page={{ pageNumNext }}" class="btn btn-primary tm-btn-next mb-2 {% if page == numOfPages %} disabled {% endif %}">Next</a>
+        </div>  
+        {% endif %}        
+    </div>
+</div> 
+
+{% endblock %}

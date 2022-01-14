@@ -1,1 +1,65 @@
 {% extends 'layout/main.html' %}
+{% block content %}
+<div class="container-fluid tm-container-content tm-mt-30">
+    {{ userContent.profileDetails(userId) }}
+    <div class="col-xl-7 col-lg-7 col-md-6 col-sm-12 mt-3">
+        <div class="col-12 d-flex tm-paging-col justify-content-between align-items-center mb-4">
+            <h1 class="tm-text-primary">Upload Image / Create Gallery</h1>
+        </div>  
+        <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col mb-4">
+            <button type="button" class="btn btn-primary {% if userContent.isBanned(userId) %} disabled {% endif %}" type="button" data-toggle="collapse" data-target="#collapseExample1" aria-expanded="false" aria-controls="collapseExample2" id="editButton">Create <span class="fa fa-plus-circle"></span></button>
+        </div> 
+        <!-- Create Images/Galleries -->
+        <div class="col-12 d-flex justify-content-between tm-paging-col">
+            <div class="mt-2 col-6 {% if not _app.hasErrors() %} collapse {% endif %}" id="collapseExample1">
+                <h3 class="tm-text-primary">Upload Image</h3>
+                <form action="" method = "post" enctype = "multipart/form-data">
+                    <div class="form-group">
+                        <input type="text" name="slug" {% if errors.image_slug == '' %} class = "form-control" value = "{{ values.image_slug|join() }}" {% else %} class = "form-control is-invalid" {% endif %} id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Image Slug">
+                        {% if errors.image_slug != '' %} <div class="invalid-feedback">{{ errors.image_slug|join() }}</div> {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="gallery_name" {% if errors.gallery_name == '' %} class = "form-control" value = "{{ values.gallery_name|join() }}" {% else %} class = "form-control is-invalid" {% endif %} id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Gallery Name">
+                        {% if errors.gallery_name != '' %} <div class="invalid-feedback">{{ errors.gallery_name|join() }}</div> {% endif %}
+                    </div>
+                    <div class="form-group">
+		                <input type="file" name="file" class="btn" id="exampleInputPassword1" placeholder="Password">
+		            </div>
+                    <div class="form-group tm-text-right">
+                        <button type="submit" name="submitImage" class="btn btn-primary">Upload</button>
+                    </div>
+                </form>
+            </div>
+            <div class="mt-2 col-6 {% if not _app.hasErrors() %} collapse {% endif %}" id="collapseExample1">
+                <h3 class="tm-text-primary">Create Gallery</h3>
+                <form action="" method="post">
+                    <div class="form-group">
+                        <input type="text" name="name" {% if errors.name == '' %} class = "form-control" value = "{{ values.name|join() }}" {% else %} class = "form-control is-invalid" {% endif %} id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Gallery Name" >
+                        {% if errors.name != '' %} <div class="invalid-feedback">{{ errors.name|join() }}</div> {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="slug" {% if errors.gallery_slug == '' %} class = "form-control" value = "{{ values.gallery_slug|join() }}" {% else %} class = "form-control is-invalid" {% endif %} id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Gallery Slug" >
+                        {% if errors.gallery_slug != '' %} <div class="invalid-feedback">{{ errors.gallery_slug|join() }}</div> {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <textarea rows="8" name="description" {% if errors.description == '' %} class = "form-control rounded-0" value = "{{ values.description|join() }}" {% else %} class = "form-control rounded-0 is-invalid" {% endif %} placeholder="Description"></textarea>
+                        {% if errors.description != '' %} <div class="invalid-feedback">{{ errors.description|join() }}</div> {% endif %}
+                    </div>
+                    <div class="form-group tm-text-right">
+                        <button type="submit" name="submitGallery" class="btn btn-primary">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>      
+    </div>
+</div>
+</div>
+    <div class="row tm-mb-30 tm-gallery">
+        {{ imageContent.imagesForProfile(userId) }}
+    </div>
+    <div class="row tm-mb-30 tm-gallery">
+        {{ galleryContent.galleriesForProfile(userId) }}
+    </div> 
+</div>
+
+{% endblock %}

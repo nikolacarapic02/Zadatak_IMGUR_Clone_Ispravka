@@ -40,6 +40,9 @@
                             </button>
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                 <a class="dropdown-item" href="/profile">Profile</a>
+                                {% if _app.user.isAdmin(_app.session.getSession('user')) %}
+                                <a class="dropdown-item" href="/moderator_logging">Moderator Logging</a>  
+                                {% endif %}
                                 <a class="dropdown-item" href="/logout">Log out</a>
                             </div>
                         </div>

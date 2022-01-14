@@ -4,14 +4,15 @@ namespace app\controllers;
 
 use app\core\Application;
 use app\models\User;
-use app\core\Controller;
+use app\core\lib\Controller;
+use Twig\Environment;
 
 class AuthController extends Controller
 {
-    protected $view;
+    protected Environment $view;
     protected User $model;
 
-    public function __construct($view)
+    public function __construct(Environment $view)
     {
         $this->view = $view;
         $this->model = new User();
@@ -19,8 +20,16 @@ class AuthController extends Controller
 
     public function index()
     {
-        $value = $_SERVER['REQUEST_URI'];
-        return $this->view->render($value . '.html', ['title' => 'Register Page']);
+        $value = Application::$app->request->getPath();
+
+        if($value == '/register')
+        {
+            return $this->view->render($value . '.html', ['title' => 'Register Page']);
+        }
+        else
+        {
+            return $this->view->render($value . '.html', ['title' => 'Login Page']);
+        }
     }
 
     public function register()

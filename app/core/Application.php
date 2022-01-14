@@ -3,7 +3,13 @@
 namespace app\core;
 
 use app\models\User;
+use app\core\lib\Request;
+use app\core\lib\Session;
 use Bramus\Router\Router;
+use app\core\lib\Database;
+use app\core\lib\Response;
+use app\models\Gallery;
+use app\models\Image;
 
 class Application
 {
@@ -12,34 +18,35 @@ class Application
 
     public Database $db;
     public Router $router;
-    public Controller $controller;
     public Response $response;
     public Request $request;
-    public User $user;
     public Session $session;
 
     protected array $errors = [];
-    protected ?array $registeredUser = [];
+    public ?User $user;
+    public ?Image $image;
+    public ?Gallery $gallery;
 
     public function __construct($config)
     {
         self::$app = $this;
         $this->db = new Database($config['db']);
         $this->router = new Router();
-        $this->controller = new Controller();
         $this->response = new Response();
         $this->request = new Request();
-        $this->user = new User();
         $this->session = new Session();
 
         if(!$this->isGuest())
         {
-            $this->registeredUser = $this->user->pdo->get($this->session->getSession('user'));
+            $this->user = new User();
         }
         else
         {
-            $this->registeredUser = null;
+            $this->user = null;
         }
+
+        $this->image = new Image();
+        $this->gallery = new Gallery();
     }
 
     public function validation($action)
@@ -82,7 +89,7 @@ class Application
         }
         else if($action === 'login')
         {
-            $user = $this->user->pdo->login($data);
+            $loginUser = $this->db->loginUser($data);
 
             if(empty($data['email']))
             {
@@ -92,7 +99,7 @@ class Application
             {
                 $this->errors['email'] =  'Email foramt must be correct!';
             }
-            else if(empty($user))
+            else if(empty($loginUser))
             {
                 $this->errors['email'] =  "Don't exist any account with this email!";
             }
@@ -101,12 +108,45 @@ class Application
             {
                 $this->errors['password'] = 'This field is required!';
             }
-            else if(!empty($user))
+            else if(!empty($loginUser))
             {
-                if(!password_verify($data['password'], $user[0]['password']))
+                if(!password_verify($data['password'], $loginUser[0]['password']))
                 {
                     $this->errors['password'] = 'Password is incorrect!';
                 }
+            }
+        }
+        else if($action === 'image_create')
+        {
+            if(empty($data['slug']))
+            {
+                $this->errors['image_slug'] = 'This field is required!';
+            }
+
+            if(empty($data['gallery_name']))
+            {
+                $this->errors['gallery_name'] = 'This field is required!';
+            }
+            else if(!$this->user->isYourGalleryName($data['gallery_name']))
+            {
+                $this->errors['gallery_name'] = "This gallery doesn't exist";
+            }
+        }
+        else if($action === 'gallery_create')
+        {
+            if(empty($data['slug']))
+            {
+                $this->errors['gallery_slug'] = 'This field is required!';
+            }
+
+            if(empty($data['name']))
+            {
+                $this->errors['name'] = 'This field is required!';
+            }
+
+            if(empty($data['description']))
+            {
+                $this->errors['description'] = 'This field is required!';
             }
         }
     }
@@ -143,9 +183,10 @@ class Application
 
     public function displayUserName()
     {
+        $registeredUser = $this->user->get($this->session->getSession('user'));
         if(!$this->isGuest())
         {
-            return $this->registeredUser[0]['username'];
+            return $registeredUser[0]['username'];
         }
     }
 
