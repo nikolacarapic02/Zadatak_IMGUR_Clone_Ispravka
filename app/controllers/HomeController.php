@@ -22,6 +22,10 @@ class HomeController extends Controller
 
     public function index()
     {
-        return $this->view->render('home.html', ['title' => 'Home Page', 'imageContent' => $this->images, 'galleryContent' => $this->galleries]);
+        return $this->view->render('home.html', [
+            'title' => 'Home Page', 
+            'imageContent' => $this->images, 
+            'galleryContent' => $this->galleries
+        ]);
     }
 }

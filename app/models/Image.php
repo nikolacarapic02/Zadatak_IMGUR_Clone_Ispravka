@@ -555,35 +555,19 @@ class Image
         }
     }
 
-    public function createImage($file, $slug, $gallery_name, $user_id)
+    public function createImage($file, $name, $slug, $gallery_name, $user_id)
     {
-        $image = Application::$app->db->getSingleImageBySlugWithoutRule($slug);
         $gallery = Application::$app->db->getYourGalleryByName($gallery_name, $user_id);
-
         $target_dir = "uploads/";
         $target_file = $target_dir . basename($file['name']);
-        $uploadOk = 1;
-        $imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+        $format = substr($file['name'], strpos($file['name'], ".") + 1);
+        $name = $name . '.' . $format;
 
-        if (file_exists($target_file)) 
-        {
-            $uploadOk = 0;
-        }
+        move_uploaded_file($file["tmp_name"], $target_file);
 
-        if ($_FILES["file"]["size"] > 1000000) 
-        {
-            $uploadOk = 0;
-        }
+        rename("uploads/" . $file['name'], "uploads/$name");
 
-        if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif" ) 
-        {
-            $uploadOk = 0;
-        }
-
-        if($uploadOk == 1)
-        {
-            move_uploaded_file($file["tmp_name"], $target_file);
-        }
+        $file['name'] = $name;
 
         $image = Application::$app->db->createImage($file['name'], $slug, $user_id, $gallery_name);
         

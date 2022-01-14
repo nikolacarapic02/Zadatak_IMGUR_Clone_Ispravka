@@ -9,7 +9,7 @@
 <div class="container-fluid tm-container-content"> 
     <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         {% if not _app.isGuest() %} 
-            {% if user.isYourImage(id) %}
+            {% if user.isYourGallery(id) %}
                 <button type="button" class="btn btn-primary mb-3 {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" type="button" data-toggle="collapse" data-target="#collapseExample1" aria-expanded="false" aria-controls="collapseExample1" id="editButton">Edit <span class="fas fa-edit"></span></button>
                 <div class="collapse mt-2" id="collapseExample1">
                     <form action = "", method = "post">

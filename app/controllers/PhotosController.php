@@ -37,142 +37,143 @@ class PhotosController extends Controller
 
     public function details($id)
     {
-        if(!key_exists('id', $_GET) || !is_numeric($_GET['id']))
+        $data = Application::$app->request->getData();
+
+        if(!key_exists('id', $_GET) || !is_numeric($id) || $id <= 0)
         {
             throw new NotFoundException();
         }
 
-        if(!empty($_POST['comment']))
+        if(!empty($data['comment']))
         {
-            $this->images->createComment($_POST['comment'], $_GET['id']);
+            $this->images->createComment($data['comment'], $id);
         }
 
-        if(Application::$app->session->getSession('user'))
+        if(!Application::$app->isGuest())
         {
-            $user = new User();
-
-            if($user->isYourImage($_GET['id']))
+            if($this->user->isYourImage($id))
             {
-                if(!empty($_POST))
+                if(!empty($data))
                 {
-                    if(!empty($_POST['new_name']) && !empty($_POST['slug']))
+                    if(!empty($data['new_name']) && !empty($data['slug']))
                     {
-                        $this->images->editImage($_GET['id'], $_POST['new_name'], $_POST['slug']);
+                        $this->images->editImage($id, $data['new_name'], $data['slug']);
                     }
                     else
                     {
-                        if(!empty($_POST['new_name']))
+                        if(!empty($data['new_name']))
                         {
-                            $newName = $_POST['new_name'];
+                            $newName = $data['new_name'];
                         }
                         else
                         {
                             $newName = '';
                         }
 
-                        if(!empty($_POST['slug']))
+                        if(!empty($data['slug']))
                         {
-                            $slug = $_POST['slug'];
+                            $slug = $data['slug'];
                         }
                         else
                         {
                             $slug = '';
                         }
                         
-                        $this->images->editImage($_GET['id'], $newName, $slug);
+                        $this->images->editImage($id, $newName, $slug);
                     }
 
-                    if(!empty($_POST['delete']))
+                    if(!empty($data['delete']))
                     {
-                        $this->images->deleteImage($_GET['id']);
+                        $this->images->deleteImage($id);
+                        Application::$app->response->redirectToAnotherPage('/profile');
                     }
                 }
             }
 
-            if($user->isModerator(Application::$app->session->getSession('user')) && !$user->isYourImage($_GET['id']))
+            if($this->user->isModerator(Application::$app->session->getSession('user')) && !$this->user->isYourImage($id))
             {
-                if(isset($_POST['submit']))
+                if(isset($data['submit']))
                 {
-                    if(key_exists('nsfw', $_POST) || key_exists('hidden', $_POST))
+                    if(key_exists('nsfw', $data) || key_exists('hidden', $data))
                     {
-                        if(!empty($_POST['nsfw']) && !empty($_POST['hidden']))
+                        if(!empty($data['nsfw']) && !empty($data['hidden']))
                         {
-                            $this->images->editImageByModerator($_POST['nsfw'], $_POST['hidden'], $_GET['id']);
+                            $this->images->editImageByModerator($data['nsfw'], $data['hidden'], $id);
                         }
                         else
                         {
-                            if(!empty($_POST['nsfw']))
+                            if(!empty($data['nsfw']))
                             {
-                                $this->images->editImageByModerator($_POST['nsfw'], '', $_GET['id']);
+                                $this->images->editImageByModerator($data['nsfw'], '', $id);
                             }
                         
-                            if(!empty($_POST['hidden']))
+                            if(!empty($data['hidden']))
                             {
-                                $this->images->editImageByModerator('', $_POST['hidden'], $_GET['id']);
+                                $this->images->editImageByModerator('', $data['hidden'], $id);
                             }
                         }
                     }
                     else
                     {
-                        $this->images->editImageByModerator('', '', $_GET['id']);
+                        $this->images->editImageByModerator('', '', $id);
                     }
                 }
             }
 
-            if($user->isAdmin(Application::$app->session->getSession('user')) && !$user->isYourImage($_GET['id']))
+            if($this->user->isAdmin(Application::$app->session->getSession('user')) && !$this->user->isYourImage($id))
             {
-                if(isset($_POST['submit']))
+                if(isset($data['submit']))
                 {
-                    if(key_exists('file_name', $_POST) || key_exists('slug', $_POST) || key_exists('nsfw', $_POST) || key_exists('hidden', $_POST))
+                    if(key_exists('file_name', $data) || key_exists('slug', $data) || key_exists('nsfw', $data) || key_exists('hidden', $data))
                     {
-                        if(!empty($_POST['file_name']) && !empty($_POST['slug']) && !empty($_POST['nsfw']) && !empty($_POST['hidden']))
+                        if(!empty($data['file_name']) && !empty($data['slug']) && !empty($data['nsfw']) && !empty($data['hidden']))
                         {
-                            $this->images->editImageByAdmin($_POST['file_name'], $_POST['slug'], $_POST['nsfw'], $_POST['hidden'], $_GET['id']);
+                            $this->images->editImageByAdmin($data['file_name'], $data['slug'], $data['nsfw'], $data['hidden'], $id);
                         }
                         else
                         {
-                            if(!empty($_POST['file_name']))
+                            if(!empty($data['file_name']))
                             {
-                                $fileName = $_POST['file_name'];
+                                $fileName = $data['file_name'];
                             }
                             else
                             {
                                 $fileName = '';
                             }
                         
-                            if(!empty($_POST['slug']))
+                            if(!empty($data['slug']))
                             {
-                                $slug = $_POST['slug'];
+                                $slug = $data['slug'];
                             }
                             else
                             {
                                 $slug = '';
                             }
                         
-                            if(!empty($_POST['nsfw']))
+                            if(!empty($data['nsfw']))
                             {
-                                $nsfw = $_POST['nsfw'];
+                                $nsfw = $data['nsfw'];
                             }
                             else
                             {
                                 $nsfw = '';
                             }
                         
-                            if(!empty($_POST['hidden']))
+                            if(!empty($data['hidden']))
                             {
-                                $hidden = $_POST['hidden'];
+                                $hidden = $data['hidden'];
                             }
                             else
                             {
                                 $hidden = '';
                             }
                         
-                            $this->images->editImageByAdmin($fileName, $slug, $nsfw, $hidden, $_GET['id']);
+                            $this->images->editImageByAdmin($fileName, $slug, $nsfw, $hidden, $id);
                         }
                     }
                     else
                     {
-                        $this->images->editImageByAdmin('', '', '', '', $_GET['id']);
+                        $this->images->editImageByAdmin('', '', '', '', $id);
                     }
                 }
             }
@@ -183,6 +184,25 @@ class PhotosController extends Controller
             'id' => $id,
             'imageContent' => $this->images,
             'user' => $this->user
+        ]);
+    }
+
+    public function userPhotos($id)
+    {
+        if(!key_exists('id', $_GET) || !is_numeric($id))
+        {
+            throw new NotFoundException();
+        }
+
+        return $this->view->render('user_photos.html', [
+            'title' => 'User Photos',
+            'imageContent' => $this->images,
+            'numOfPages' => $this->images->numOfPages(),
+            'page' => $this->images->page,
+            'pageNumPre' => $this->images->page - 1,
+            'pageNumNext' => $this->images->page + 1,
+            'pageNum' => $this->images->page,
+            'id' => $id
         ]);
     }
 }

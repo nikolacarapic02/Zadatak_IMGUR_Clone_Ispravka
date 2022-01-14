@@ -1,15 +1,16 @@
 <?php
 
-use app\controllers\AboutController;
-use app\controllers\AuthController;
-use app\controllers\GalleriesController;
-use app\controllers\HomeController;
-use app\controllers\PhotosController;
-use app\controllers\ProfileController;
-use app\core\Application;
 use Dotenv\Dotenv;
 use Twig\Environment;
+use app\core\Application;
 use Twig\Loader\FilesystemLoader;
+use app\controllers\AuthController;
+use app\controllers\HomeController;
+use app\controllers\AboutController;
+use app\controllers\PhotosController;
+use app\controllers\ProfileController;
+use app\controllers\GalleriesController;
+use app\controllers\ModeratorLoggingController;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -31,6 +32,13 @@ $app = new Application($config);
 
 $twig->addGlobal('_session', $app->session);
 $twig->addGlobal('_app', $app);
+
+$app->router->set404(function() use ($twig){
+    echo $twig->render('_error.html', [
+        'title' => 'Error 404',
+        'exception' => ['code' => 404, 'message' => 'Page Not Found']
+    ]);
+});
 
 //GET
 $app->router->get('/', function() use ($twig){
@@ -59,7 +67,9 @@ $app->router->get('/profile', function() use ($twig){
 });
 
 $app->router->get('/user_profile', function() use ($twig){
-    echo $twig->render('other_profile.html');
+    $controller = new ProfileController($twig);
+    key_exists('id', $_GET) ? $id = $_GET['id'] : $id = null;
+    echo $controller->otherProfile($id);
 });
 
 $app->router->get('/photos', function() use ($twig){
@@ -69,11 +79,14 @@ $app->router->get('/photos', function() use ($twig){
 
 $app->router->get('/photo_details', function() use ($twig){
     $controller = new PhotosController($twig);
-    echo $controller->details($_GET['id']);
+    key_exists('id', $_GET) ? $id = $_GET['id'] : $id = null;
+    echo $controller->details($id);
 });
 
 $app->router->get('/user_photos', function() use ($twig){
-    echo $twig->render('user_photos.html');
+    $controller = new PhotosController($twig);
+    key_exists('id', $_GET) ? $id = $_GET['id'] : $id = null;
+    echo $controller->userPhotos($id);
 });
 
 $app->router->get('/galleries', function() use ($twig){
@@ -83,11 +96,14 @@ $app->router->get('/galleries', function() use ($twig){
 
 $app->router->get('/gallery_details', function() use ($twig){
     $controller = new GalleriesController($twig);
-    echo $controller->details($_GET['id']);
+    key_exists('id', $_GET) ? $id = $_GET['id'] : $id = null;
+    echo $controller->details($id);
 });
 
 $app->router->get('/user_galleries', function() use ($twig){
-    echo $twig->render('user_galleries.html');
+    $controller = new GalleriesController($twig);
+    key_exists('id', $_GET) ? $id = $_GET['id'] : $id = null;
+    echo $controller->userGalleries($id);
 });
 
 $app->router->get('/about', function() use ($twig){
@@ -96,7 +112,8 @@ $app->router->get('/about', function() use ($twig){
 });
 
 $app->router->get('/moderator_logging', function() use ($twig){
-    echo $twig->render('moderator_logging.html');
+    $controller = new ModeratorLoggingController($twig);
+    echo $controller->index();
 });
 
 //POST
@@ -117,18 +134,33 @@ $app->router->post('/profile', function() use ($twig){
 });
 
 $app->router->post('/user_profile', function() use ($twig){
-    $twig->render('other_profile.html');
+    $controller = new ProfileController($twig);
+    key_exists('id', $_GET) ? $id = $_GET['id'] : $id = null;
+    echo $controller->otherProfile($id);
 });
 
 $app->router->post('/photo_details', function() use ($twig){
     $controller = new PhotosController($twig);
-    echo $controller->details($_GET['id']);
+    key_exists('id', $_GET) ? $id = $_GET['id'] : $id = null;
+    echo $controller->details($id);
 });
 
 $app->router->post('/gallery_details', function() use ($twig){
     $controller = new GalleriesController($twig);
-    echo $controller->details($_GET['id']);
+    key_exists('id', $_GET) ? $id = $_GET['id'] : $id = null;
+    echo $controller->details($id);
 });
 
-$app->router->run();
+try
+{
+    $app->router->run();
+}
+catch(\Exception $e)
+{
+    echo $twig->render('_error.html', [
+        'title' => 'Error ' . $e->getCode(),
+        'exception' => $e
+    ]);
+}
+
 

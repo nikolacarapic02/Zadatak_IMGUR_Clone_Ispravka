@@ -468,6 +468,11 @@ select:not([multiple]) {
     font-size: 1.6rem;
 }
 
+.text-danger
+{
+    font-size: 0.9rem;
+}
+
 /* Moderator Logging */
 
 .js-pscroll 

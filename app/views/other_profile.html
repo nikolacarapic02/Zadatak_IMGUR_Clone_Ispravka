@@ -1,1 +1,73 @@
 {% extends 'layout/main.html' %}
+{% block content %}
+<div class="container-fluid tm-container-content tm-mt-30">
+    {{ userContent.userProfileDetails(id) }}
+    <div class="row tm-mb-50">
+        <div class="col-xl-2 col-lg-12 col-md-12 col-sm-12 ">
+        </div>
+        <div class="col-xl-8 col-lg-12 col-md-12 col-sm-12 ">
+            {% if not _app.isGuest() %}
+                {% if userContent.isAdmin(_app.session.getSession('user')) and not userContent.isYourProfile(id) %}
+                    <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
+                        <button type="button" class="btn btn-primary {% if userContent.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" type="button" data-toggle="collapse" data-target="#collapseExample1" aria-expanded="false" aria-controls="collapseExample1" id="editButton">Edit Status <span class="fas fa-edit"></span></button>
+                    </div> 
+                    <div class="col-12 d-flex justify-content-between tm-paging-col mb-3">
+                        <div class="collapse mt-2 col-6" id="collapseExample1">
+                            <form action="" method = "post">
+                                <div class="btn-group" data-toggle="buttons">
+
+                                    <label class="btn  form-check-label">
+                                        <input type="radio"  autocomplete="off" name="status" value="1" {% if userContent.isActive(id) %} checked {% endif %}> <span class="checkText">Active</span>
+                                    </label>
+
+                                    <label class="btn form-check-label">
+                                        <input type="radio"  autocomplete="off" name="status" value="2" {% if userContent.isBanned(id) %} checked {% endif %}> <span class="checkText">Inactive</span>
+                                    </label>
+
+                                </div>
+                                <div class="form-group tm-text-right">
+                                    <button type="submit" class="btn btn-primary">Done</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>  
+                    <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
+                        <button type="button" class="btn btn-primary {% if userContent.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" type="button" data-toggle="collapse" data-target="#collapseExample2" aria-expanded="false" aria-controls="collapseExample1" id="editButton">Change Role <span class="fa fa-users"></span></button>
+                    </div> 
+                    <div class="col-12 d-flex justify-content-between tm-paging-col">
+                        <div class="collapse mt-2 col-6" id="collapseExample2">
+                            <form action="" method = "post">
+                                <div class="btn-group" data-toggle="buttons">
+
+                                    <label class="btn  form-check-label">
+                                        <input type="radio"  autocomplete="off" name="role" value="1" {% if not userContent.isModerator(id) and  not userContent.isAdmin(id) %} checked {% endif %}> <span class="checkText">User</span>
+                                    </label>
+
+                                    <label class="btn form-check-label">
+                                        <input type="radio"  autocomplete="off" name="role" value="2" {% if userContent.isModerator(id) %} checked {% endif %}> <span class="checkText">Moderator</span>
+                                    </label>
+
+                                    <label class="btn  form-check-label">
+                                        <input type="radio"  autocomplete="off" name="role" value="3" {% if userContent.isAdmin(id) %} checked {% endif %}> <span class="checkText">Admin</span>
+                                    </label>
+
+                                </div>
+                                <div class="form-group tm-text-right">
+                                    <button type="submit" class="btn btn-primary">Done</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>  
+                {% endif %}      
+            {% endif %}   
+        </div>
+    </div>
+</div>
+    <div class="row tm-mb-30 tm-gallery">
+        {{ imageContent.imagesForProfile(id) }}    
+    </div>
+    <div class="row tm-mb-30 tm-gallery">
+        {{ galleryContent.galleriesForProfile(id) }}
+    </div> 
+</div>
+{% endblock %}

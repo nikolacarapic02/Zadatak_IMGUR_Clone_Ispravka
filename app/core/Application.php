@@ -14,15 +14,14 @@ use app\models\Image;
 class Application
 {
     protected static $config;
-    public static $app;
+    protected array $errors = [];
 
+    public static $app;
     public Database $db;
     public Router $router;
     public Response $response;
     public Request $request;
     public Session $session;
-
-    protected array $errors = [];
     public ?User $user;
     public ?Image $image;
     public ?Gallery $gallery;
@@ -97,7 +96,7 @@ class Application
             }
             else if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL))
             {
-                $this->errors['email'] =  'Email foramt must be correct!';
+                $this->errors['email'] =  'Email format must be correct!';
             }
             else if(empty($loginUser))
             {
@@ -118,7 +117,14 @@ class Application
         }
         else if($action === 'image_create')
         {
-            if(empty($data['slug']))
+            $extensions = ['png', 'jpg', 'jpeg', 'gif'];
+
+            if(empty($data['image_name']))
+            {
+                $this->errors['image_name'] = 'This field is required!';
+            }
+
+            if(empty($data['image_slug']))
             {
                 $this->errors['image_slug'] = 'This field is required!';
             }
@@ -131,10 +137,23 @@ class Application
             {
                 $this->errors['gallery_name'] = "This gallery doesn't exist";
             }
+
+            if(empty($_FILES['file']['name']))
+            {
+                $this->errors['file'] = 'You must upload an image!';
+            }
+            else if(!in_array(substr($_FILES['file']['name'], strpos($_FILES['file']['name'], ".") + 1), $extensions))
+            {
+                $this->errors['file'] = 'File has invalid extension!';
+            }
+            else if($_FILES["file"]["size"] > 1000000)
+            {
+                $this->errors['file'] = 'File is to large!';
+            }
         }
         else if($action === 'gallery_create')
         {
-            if(empty($data['slug']))
+            if(empty($data['gallery_slug']))
             {
                 $this->errors['gallery_slug'] = 'This field is required!';
             }

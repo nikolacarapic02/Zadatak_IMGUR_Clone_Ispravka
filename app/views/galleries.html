@@ -56,13 +56,13 @@
             <a href="/galleries?page={{ pageNumPre }}" class="btn btn-primary tm-btn-prev mb-2 {% if page == 1 %} disabled {% endif %}">Previous</a>
             <div class="tm-paging d-flex">
                 {% set pageNum = numOfPages - 3 %}
-                <a href="/galleries?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ numOfPages - 3 }}</a>
+                <a href="/galleries?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ pageNum }}</a>
                 {% set pageNum = numOfPages - 2 %}
-                <a href="/galleries?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ numOfPages - 2 }}</a>
+                <a href="/galleries?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ pageNum }}</a>
                 {% set pageNum = numOfPages - 1 %}
-                <a href="/galleries?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ numOfPages - 1 }}</a>
+                <a href="/galleries?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ pageNum }}</a>
                 {% set pageNum = numOfPages %}
-                <a href="/galleries?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ numOfPages }}</a>
+                <a href="/galleries?page={{ pageNum }}" class="{% if pageNum == page %} active {% endif %} tm-paging-link">{{ pageNum }}</a>
             </div>
             <a href="/galleries?page={{ pageNumNext }}" class="btn btn-primary tm-btn-next {% if page == numOfPages %} disabled {% endif %}">Next</a>
         </div>

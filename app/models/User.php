@@ -321,17 +321,17 @@ class User
             for($i = 0; $i < count($content); $i++)
             {
                 echo sprintf('
-                <tr class="row100 body">
-                    <td class="cell100 column1">%s</td>
-                    <td class="cell100 column2">%s</td>
-                    <td class="cell100 column3">%s</td>
-                    <td class="cell100 column4">%s</td>
-                </tr>
-                ',
-                $content[$i]['moderator_id'],
-                empty($content[$i]['image_id']) ? 'empty' : $content[$i]['image_id'],
-                empty($content[$i]['gallery_id']) ? 'empty' : $content[$i]['gallery_id'],
-                $content[$i]['action']
+                    <tr class="row100 body">
+                        <td class="cell100 column1">%s</td>
+                        <td class="cell100 column2">%s</td>
+                        <td class="cell100 column3">%s</td>
+                        <td class="cell100 column4">%s</td>
+                    </tr>
+                    ',
+                    $content[$i]['moderator_id'],
+                    empty($content[$i]['image_id']) ? 'empty' : $content[$i]['image_id'],
+                    empty($content[$i]['gallery_id']) ? 'empty' : $content[$i]['gallery_id'],
+                    $content[$i]['action']
                 );
             }
         }

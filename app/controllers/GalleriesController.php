@@ -37,160 +37,161 @@ class GalleriesController extends Controller
 
     public function details($id)
     {
-        if(!key_exists('id', $_GET) || !is_numeric($_GET['id']))
+        $data = Application::$app->request->getData();
+
+        if(!key_exists('id', $_GET) || !is_numeric($id) || $id <= 0)
         {
             throw new NotFoundException();
         }
 
-        if(!empty($_POST['comment']))
+        if(!empty($data['comment']))
         {
-            $this->galleries->createComment($_POST['comment'], $_GET['id']);
+            $this->galleries->createComment($data['comment'], $id);
         }
 
-        if(Application::$app->session->getSession('user'))
+        if(!Application::$app->isGuest())
         {
-            $user = new User();
-
-            if($user->isYourGallery($_GET['id']))
+            if($this->user->isYourGallery($id))
             {
-                if(!empty($_POST))
+                if(!empty($data))
                 {
-                    if(!empty($_POST['new_name']) && !empty($_POST['slug']) && !empty($_POST['description']))
+                    if(!empty($data['new_name']) && !empty($data['slug']) && !empty($data['description']))
                     {
-                        $this->galleries->editGallery($_GET['id'], $_POST['new_name'], $_POST['slug'], $_POST['description']);
+                        $this->galleries->editGallery($id, $data['new_name'], $data['slug'], $data['description']);
                     }
                     else
                     {
-                        if(!empty($_POST['new_name']))
+                        if(!empty($data['new_name']))
                         {
-                            $newName = $_POST['new_name'];
+                            $newName = $data['new_name'];
                         }
                         else
                         {
                             $newName = '';
                         }
 
-                        if(!empty($_POST['slug']))
+                        if(!empty($data['slug']))
                         {
-                            $slug = $_POST['slug'];
+                            $slug = $data['slug'];
                         }
                         else
                         {
                             $slug = '';
                         }
 
-                        if(!empty($_POST['description']))
+                        if(!empty($data['description']))
                         {
-                            $description = $_POST['description'];
+                            $description = $data['description'];
                         }
                         else
                         {
                             $description = '';
                         }
 
-                        $this->galleries->editGallery($_GET['id'], $newName, $slug, $description);
+                        $this->galleries->editGallery($id, $newName, $slug, $description);
                     }
 
-                    if(!empty($_POST['delete']))
+                    if(!empty($data['delete']))
                     {
-                        $this->galleries->deleteGallery($_GET['id']);
+                        $this->galleries->deleteGallery($id);
+                        Application::$app->response->redirectToAnotherPage('/profile');
                     }
                 }
             }
 
-            if($user->isModerator(Application::$app->session->getSession('user')) && !$user->isYourGallery($_GET['id']))
+            if($this->user->isModerator(Application::$app->session->getSession('user')) && !$this->user->isYourGallery($id))
             {
-                if(isset($_POST['submit']))
+                if(isset($data['submit']))
                 {
-                    if(key_exists('nsfw',$_POST) || key_exists('hidden', $_POST))
+                    if(key_exists('nsfw',$data) || key_exists('hidden', $data))
                     {
-                        if(!empty($_POST['nsfw']) && !empty($_POST['hidden']))
+                        if(!empty($data['nsfw']) && !empty($data['hidden']))
                         {
-                            $this->galleries->editGalleryByModerator($_POST['nsfw'], $_POST['hidden'], $_GET['id']);
+                            $this->galleries->editGalleryByModerator($data['nsfw'], $data['hidden'], $id);
                         }
                         else
                         {
-                            if(!empty($_POST['nsfw']))
+                            if(!empty($data['nsfw']))
                             {
-                                $this->galleries->editGalleryByModerator($_POST['nsfw'], '', $_GET['id']);
+                                $this->galleries->editGalleryByModerator($data['nsfw'], '', $id);
                             }
                         
-                            if(!empty($_POST['hidden']))
+                            if(!empty($data['hidden']))
                             {
-                                $this->galleries->editGalleryByModerator('', $_POST['hidden'], $_GET['id']);
+                                $this->galleries->editGalleryByModerator('', $data['hidden'], $id);
                             }
                         }
                     }
                     else
                     {
-                        $this->galleries->editGalleryByModerator('', '', $_GET['id']);
+                        $this->galleries->editGalleryByModerator('', '', $id);
                     }
                 }
             }
 
-            if($user->isAdmin(Application::$app->session->getSession('user')) && !$user->isYourGallery($_GET['id']))
+            if($this->user->isAdmin(Application::$app->session->getSession('user')) && !$this->user->isYourGallery($id))
             {
-                if(isset($_POST['submit']))
+                if(isset($data['submit']))
                 {
-                    if(key_exists('name', $_POST) || key_exists('slug', $_POST) || key_exists('nsfw', $_POST) || key_exists('hidden', $_POST) || key_exists('description', $_POST))
+                    if(key_exists('name', $data) || key_exists('slug', $data) || key_exists('nsfw', $data) || key_exists('hidden', $data) || key_exists('description', $data))
                     {
-                        if(!empty($_POST['name']) && !empty($_POST['slug']) && !empty($_POST['nsfw']) && !empty($_POST['hidden']) && !empty($_POST['description']))
+                        if(!empty($data['name']) && !empty($data['slug']) && !empty($data['nsfw']) && !empty($data['hidden']) && !empty($data['description']))
                         {
-                            $this->galleries->editGalleryByAdmin($_POST['name'], $_POST['slug'], $_POST['nsfw'], $_POST['hidden'], $_POST['description'], $_GET['id']);
+                            $this->galleries->editGalleryByAdmin($data['name'], $data['slug'], $data['nsfw'], $data['hidden'], $data['description'], $id);
                         }
                         else
                         {
-                            if(!empty($_POST['name']))
+                            if(!empty($data['name']))
                             {
-                                $name = $_POST['name'];
+                                $name = $data['name'];
                             }
                             else
                             {
                                 $name = '';
                             }
                         
-                            if(!empty($_POST['slug']))
+                            if(!empty($data['slug']))
                             {
-                                $slug = $_POST['slug'];
+                                $slug = $data['slug'];
                             }
                             else
                             {
                                 $slug = '';
                             }
                         
-                            if(!empty($_POST['nsfw']))
+                            if(!empty($data['nsfw']))
                             {
-                                $nsfw = $_POST['nsfw'];
+                                $nsfw = $data['nsfw'];
                             }
                             else
                             {
                                 $nsfw = '';
                             }
                         
-                            if(!empty($_POST['hidden']))
+                            if(!empty($data['hidden']))
                             {
-                                $hidden = $_POST['hidden'];
+                                $hidden = $data['hidden'];
                             }
                             else
                             {
                                 $hidden = '';
                             }
                         
-                            if(!empty($_POST['description']))
+                            if(!empty($data['description']))
                             {
-                                $description = $_POST['description'];
+                                $description = $data['description'];
                             }
                             else
                             {
                                 $description = '';
                             }
                         
-                            $this->galleries->editGalleryByAdmin($name, $slug, $nsfw, $hidden, $description, $_GET['id']);
+                            $this->galleries->editGalleryByAdmin($name, $slug, $nsfw, $hidden, $description, $id);
                         }
                     }
                     else
                     {
-                        $this->galleries->editGalleryByAdmin('', '', '', '', '', $_GET['id']);
+                        $this->galleries->editGalleryByAdmin('', '', '', '', '', $id);
                     }
                 }
             }
@@ -202,6 +203,25 @@ class GalleriesController extends Controller
             'galleryContent' => $this->galleries,
             'id' => $id,
             'user' => $this->user
+        ]);
+    }
+
+    public function userGalleries($id)
+    {
+        if(!key_exists('id', $_GET) || !is_numeric($id))
+        {
+            throw new NotFoundException();
+        }
+        
+        return $this->view->render('user_galleries.html', [
+            'title' => 'User Galleries',
+            'galleryContent' => $this->galleries,
+            'numOfPages' => $this->galleries->numOfPages(),
+            'page' => $this->galleries->page,
+            'pageNumPre' => $this->galleries->page - 1,
+            'pageNumNext' => $this->galleries->page + 1,
+            'pageNum' => $this->galleries->page,
+            'id' => $id
         ]);
     }
 }

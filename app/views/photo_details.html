@@ -1,5 +1,4 @@
 {% extends 'layout/main.html' %}
-
 {% block content %}
 {{ imageContent.details(id) }}
 <div class="container-fluid tm-container-content"> 
@@ -28,7 +27,7 @@
             </div>
             {% elseif user.isModerator(_app.session.getSession('user')) %}
                 <button type="button" class="btn btn-primary {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" type="button" data-toggle="collapse" data-target="#collapseExample2" aria-expanded="false" aria-controls="collapseExample2" id="editButton">Edit <span class="fas fa-edit"></span></button>
-                <div class="collapse mt-2" id="collapseExample3">
+                <div class="collapse mt-2" id="collapseExample2">
                     <form action = "", method = "post">
                         <div class="btn-group" data-toggle="buttons">
 
