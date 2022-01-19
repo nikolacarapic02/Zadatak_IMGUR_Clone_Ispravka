@@ -94,7 +94,7 @@ class GalleriesController extends Controller
                     if(!empty($data['delete']))
                     {
                         $this->galleries->deleteGallery($id);
-                        Application::$app->response->redirectToAnotherPage('/profile');
+                        Application::$app->response->redirectToAnotherPage('/');
                     }
                 }
             }
@@ -216,7 +216,7 @@ class GalleriesController extends Controller
         return $this->view->render('user_galleries.html', [
             'title' => 'User Galleries',
             'galleryContent' => $this->galleries,
-            'numOfPages' => $this->galleries->numOfPages(),
+            'numOfPages' => $this->galleries->numOfUserPages($id),
             'page' => $this->galleries->page,
             'pageNumPre' => $this->galleries->page - 1,
             'pageNumNext' => $this->galleries->page + 1,

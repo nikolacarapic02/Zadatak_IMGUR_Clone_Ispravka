@@ -20,7 +20,7 @@
                 <a href="/user_photos?id={{ id }}&page=4" class="btn {% if pageNum == page %} active {% endif %} {% if pageNum > numOfPages %} disabled {% endif %} tm-paging-link">{{ pageNum }}</a>
                 {% set pageNum = pageNum + 1 %}
             </div>
-            <a href="/user_photos?id={{ id }}&page={{ pageNumNext }}" class="btn btn-primary tm-btn-next mb-2 {% if page == numOfPages %} disabled {% endif %}" >Next</a>
+            <a href="/user_photos?id={{ id }}&page={{ pageNumNext }}" class="btn btn-primary tm-btn-next mb-2 {% if page == numOfPages or pageNum > numOfPages %} disabled {% endif %}" >Next</a>
         </div>
         {% elseif numOfPages - page > 2 %}
         <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">

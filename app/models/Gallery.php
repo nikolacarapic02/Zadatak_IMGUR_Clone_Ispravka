@@ -3,16 +3,19 @@
 namespace app\models;
 
 use app\core\Application;
-use app\exceptions\NotFoundException;
+use app\cache\Cache;
+use app\exceptions\ForbidenException;
 
 class Gallery
 {
     private array $galleries = [];
     private int $i = 0;
+    private string $uri;
+    private Cache $redis;
     public string $page = '';
 
     public function __construct()
-    {
+    {       
         if(key_exists('page',$_GET))
         {
             if(is_numeric($_GET['page']) &&  $_GET['page'] > 0)
@@ -34,7 +37,9 @@ class Gallery
             $this->page = 1;
         }
 
-        $this->i = 0;
+        $this->redis = new Cache();
+
+        $this->uri = Application::$app->request->getPath();
     }
 
     public function isNsfw($id)
@@ -89,11 +94,27 @@ class Gallery
     {
         if($this->checkContentToLoad())
         {
-            $this->galleries = Application::$app->db->getAllGaleriesForPage($this->page);
+            if($this->redis->isCached($this->uri, 'all_galleries_page_' . $this->page))
+            {   
+                $this->galleries = $this->redis->getCachedGalleries($this->uri, $this->page);
+            }
+            else
+            {
+                $this->galleries = Application::$app->db->getAllGaleriesForPage($this->page);
+                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+            }
         }
         else
         {
-            $this->galleries = Application::$app->db->getGalleriesForPage($this->page);
+            if($this->redis->isCached($this->uri, 'galleries_page_' . $this->page))
+            {   
+                $this->galleries = $this->redis->getCachedGalleries($this->uri, $this->page);
+            }
+            else
+            {
+                $this->galleries = Application::$app->db->getGalleriesForPage($this->page);
+                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+            }
         }
 
         for($this->i = 0; $this->i < count($this->galleries); $this->i++){
@@ -134,16 +155,27 @@ class Gallery
 
         if($this->checkContentToLoad())
         {
-            $this->galleries = Application::$app->db->getAllGalleriesForUser($user[0]['id'], $this->page);
+            if($this->redis->isCached($this->uri, 'user_' . $user[0]['id'] . '_all_galleries_page_' . $this->page))
+            {   
+                $this->galleries = $this->redis->getCachedGalleries($this->uri, $this->page);
+            }
+            else
+            {
+                $this->galleries = Application::$app->db->getAllGalleriesForUser($user[0]['id'], $this->page);
+                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+            }
         }
         else
         {
-            $this->galleries = Application::$app->db->getGalleriesForUser($user[0]['id'], $this->page);
-        }
-
-        if(empty($this->galleries))
-        {
-            throw new NotFoundException();
+            if($this->redis->isCached($this->uri, 'user_' . $user[0]['id'] . '_galleries_page_' . $this->page))
+            {   
+                $this->galleries = $this->redis->getCachedGalleries($this->uri, $this->page);
+            }
+            else
+            {
+                $this->galleries = Application::$app->db->getGalleriesForUser($user[0]['id'], $this->page);
+                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+            }
         }
 
         echo sprintf('
@@ -157,6 +189,15 @@ class Gallery
             ',
             $user[0]['username']
         );
+
+        if(empty($this->galleries))
+        {
+            echo '
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
+                    <p class="comment-text">There is no galleries</p>
+                </div>  
+            ';   
+        }
 
         for($this->i = 0; $this->i < count($this->galleries); $this->i++){
             echo sprintf('
@@ -199,7 +240,7 @@ class Gallery
 
         if(empty($gallery))
         {
-            throw new NotFoundException();
+            throw new ForbidenException();
         }
     
         $instance = new User();
@@ -265,11 +306,6 @@ class Gallery
                 $image = Application::$app->db->getSingleImageById($imagesId[$this->i]['image_id']);
             }
 
-            if(empty($gallery))
-            {
-                throw new NotFoundException();
-            }
-
             echo sprintf('
                 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
                     <figure class="effect-ming tm-video-item">
@@ -300,11 +336,6 @@ class Gallery
         else
         {
             $gallery = Application::$app->db->getSingleGallery($id);
-        }
-
-        if(empty($gallery))
-        {
-            throw new NotFoundException();
         }
 
         $comments = Application::$app->db->getCommentsForGallery($gallery[0]['id']);
@@ -358,11 +389,6 @@ class Gallery
             $gallery = Application::$app->db->getSingleGallery($id);
         }
 
-        if(empty($gallery))
-        {
-            throw new NotFoundException();
-        }
-
         if(!empty($comment))
         {
             $comment = $_POST['comment'];
@@ -385,11 +411,6 @@ class Gallery
     public function editGalleryByModerator($nsfw, $hidden , $id)
     {
         $gallery = Application::$app->db->getSingleGalleryWithoutRule($id);
-
-        if(empty($gallery))
-        {
-            throw new NotFoundException();
-        }
 
         $instance = new User();
         $user = $instance->get(Application::$app->session->getSession('user'));
@@ -449,17 +470,13 @@ class Gallery
         if($nsfwOld != $nsfwNew || $hiddenOld != $hiddenNew)
         {
             Application::$app->db->moderatorGalleryLogging($user[0]['id'], $user[0]['username'], $gallery[0]['id'], $gallery[0]['slug'], $action);
+            $this->redis->editGalleryFromCache($gallery, $newGallery);
         }
     }
 
     public function editGalleryByAdmin($name, $slug, $nsfw, $hidden, $description, $id)
     {
         $gallery = Application::$app->db->getSingleGalleryWithoutRule($id);
-
-        if(empty($gallery))
-        {
-            throw new NotFoundException();
-        }
 
         if($name == '')
         {
@@ -487,6 +504,8 @@ class Gallery
         }
 
         Application::$app->db->editGalleryByAdmin($name, $slug, $nsfw, $hidden, $description, $id);
+        $newGallery = Application::$app->db->getSingleGalleryWithoutRule($id);
+        $this->redis->editGalleryFromCache($gallery, $newGallery);
     }
 
     public function numOfPages()
@@ -531,11 +550,27 @@ class Gallery
 
         if($this->checkContentToLoad())
         {
-            $this->galleries = Application::$app->db->getAllGalleriesForUser($user[0]['id'], $this->page);
+            if($this->redis->isCached($this->uri, 'user_' . $user[0]['id'] . '_all_galleries_page_' . $this->page))
+            {   
+                $this->galleries = $this->redis->getCachedGalleries($this->uri, $this->page);
+            }
+            else
+            {
+                $this->galleries = Application::$app->db->getAllGalleriesForUser($user[0]['id'], $this->page);
+                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+            }
         }
         else
         {
-            $this->galleries = Application::$app->db->getGalleriesForUser($user[0]['id'], $this->page);
+            if($this->redis->isCached($this->uri, 'user_' . $user[0]['id'].'_galleries_page_' . $this->page))
+            {   
+                $this->galleries = $this->redis->getCachedGalleries($this->uri, $this->page);
+            }
+            else
+            {
+                $this->galleries = Application::$app->db->getGalleriesForUser($user[0]['id'], $this->page);
+                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+            }
         }
 
         echo sprintf('
@@ -603,8 +638,9 @@ class Gallery
 
     public function createGallery($name, $slug, $description, $user_id)
     {
-        $gallery = Application::$app->db->createGallery($name, $slug, $description, $user_id);
-        $newGallery = Application::$app->db->getSingleGalleryWithoutRule($gallery[0]['id']);
+        $galleryId = Application::$app->db->createGallery($name, $slug, $description, $user_id);
+        $gallery = Application::$app->db->getSingleGalleryWithoutRule($galleryId[0]['id']);
+        $this->redis->createGalleryInCache($gallery);
     }
 
     public function editGallery($id, $name, $slug, $description)
@@ -631,15 +667,16 @@ class Gallery
             Application::$app->db->editGallery($name, $slug, $description, $gallery[0]['id'], Application::$app->session->getSession('user'));
 
             $newGallery = Application::$app->db->getSingleGalleryWithoutRule($gallery[0]['id']);
+            $this->redis->editGalleryFromCache($gallery, $newGallery);
         }
     }
 
     public function deleteGallery($id)
     {
         $gallery = Application::$app->db->getSingleGalleryWithoutRule($id);
-
         Application::$app->db->deleteGalleryImageKey($id);
         Application::$app->db->deleteGalleryCommentKey($id);
         Application::$app->db->deleteGallery($id);
+        $this->redis->deleteGalleryFromCache($gallery);
     }
 }

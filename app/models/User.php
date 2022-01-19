@@ -3,31 +3,33 @@
 namespace app\models;
 
 use app\core\Application;
+use app\cache\Cache;
 use app\exceptions\NotFoundException;
 
 class User
 {
-    private $pdo;
     private array $user = [];
+    private Cache $redis;
 
     public function __construct()
     {
-        $this->pdo = Application::$app->db;
+        $this->redis = new Cache();
     }
 
     public function register(array $attributes)
     {
-        $this->pdo->registerUser($attributes);
+        Application::$app->db->registerUser($attributes);
     }
 
     public function login(array $attributes)
     {
-        return $this->pdo->loginUser($attributes);
+        return Application::$app->db->loginUser($attributes);
     }
 
     public function logout()
     {
         Application::$app->session->unsetSession('user');
+        $this->redis->clearFromHash('/profile', 'user');
     }
 
     public function get($id)
@@ -169,7 +171,15 @@ class User
 
     public function profileDetails($id)
     {
-        $this->user = Application::$app->db->getUser($id);
+        if($this->redis->isCached('/profile', 'user'))
+        {
+            $this->user = $this->redis->getCachedUser();
+        }
+        else
+        {
+            $this->user = Application::$app->db->getUser($id);
+            $this->redis->cacheUser($this->user, 120);
+        }
 
         if(empty($this->user))
         {
@@ -248,8 +258,6 @@ class User
 
     public function changeUserStatus($id, $status)
     {
-        $oldUser = Application::$app->db->getUser($id);
-
         if($status == 1)
         {
             $status = 'active';
@@ -260,14 +268,10 @@ class User
         }
         
         Application::$app->db->changeUserStatus($id, $status);
-
-        $newUser = Application::$app->db->getUser($id);
     }
 
     public function changeUserRole($id, $role)
     {
-        $oldUser = Application::$app->db->getUser($id);
-
         if($role == 1)
         {
             $role = 'user';
@@ -284,8 +288,6 @@ class User
         }
 
         Application::$app->db->changeUserRole($id, $role);
-
-        $newUser = Application::$app->db->getUser($id);
     }
 
     public function getModeratorLogging()

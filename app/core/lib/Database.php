@@ -273,7 +273,7 @@ class Database
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function createImage($file_name, $slug, $user_id, $gallery_name)
+    public function createImage($file_name, $slug, $user_id)
     {
         $statement = $this->pdo->prepare("INSERT INTO image (user_id, file_name, slug, nsfw, hidden)
         VALUES ('$user_id', '$file_name', '$slug', 0, 0);");

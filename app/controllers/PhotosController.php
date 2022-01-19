@@ -85,7 +85,7 @@ class PhotosController extends Controller
                     if(!empty($data['delete']))
                     {
                         $this->images->deleteImage($id);
-                        Application::$app->response->redirectToAnotherPage('/profile');
+                        Application::$app->response->redirectToAnotherPage('/');
                     }
                 }
             }
@@ -197,7 +197,7 @@ class PhotosController extends Controller
         return $this->view->render('user_photos.html', [
             'title' => 'User Photos',
             'imageContent' => $this->images,
-            'numOfPages' => $this->images->numOfPages(),
+            'numOfPages' => $this->images->numOfUserPages($id),
             'page' => $this->images->page,
             'pageNumPre' => $this->images->page - 1,
             'pageNumNext' => $this->images->page + 1,

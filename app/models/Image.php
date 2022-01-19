@@ -3,16 +3,19 @@
 namespace app\models;
 
 use app\core\Application;
+use app\cache\Cache;
 use app\exceptions\NotFoundException;
 
 class Image
 {
     private array $images = [];
-    private int $i;
+    private int $i = 0;
+    private string $uri;
+    private Cache $redis;
     public string $page = '';
 
     public function __construct()
-    {
+    {    
         if(key_exists('page',$_GET))
         {
             if(is_numeric($_GET['page']) && $_GET['page'] > 0)
@@ -34,7 +37,9 @@ class Image
             $this->page = 1;
         }
 
-        $this->i = 0;
+        $this->redis = new Cache();
+
+        $this->uri = Application::$app->request->getPath();
     }
 
     public function isNsfw($id)
@@ -90,17 +95,42 @@ class Image
     {
         if($this->checkContentToLoad())
         {
-            $this->images = Application::$app->db->getAllImagesForPage($this->page);
+            if($this->redis->isCached($this->uri, 'all_photos_page_' . $this->page))
+            {   
+                $this->images = $this->redis->getCachedImages($this->uri, $this->page);
+            }
+            else
+            {
+                $this->images = Application::$app->db->getAllImagesForPage($this->page);
+                
+                if(!empty($this->images))
+                {
+                    $this->redis->cacheImages($this->images, $this->uri, $this->page);
+                }
+            }
         }
         else
         {
-            $this->images = Application::$app->db->getImagesForPage($this->page);
+            if($this->redis->isCached($this->uri, 'photos_page_' . $this->page))
+            {   
+                $this->images = $this->redis->getCachedImages($this->uri, $this->page);
+            }
+            else
+            {
+                $this->images = Application::$app->db->getImagesForPage($this->page);
+                
+                if(!empty($this->images))
+                {
+                    $this->redis->cacheImages($this->images, $this->uri, $this->page);
+                }
+            }
         }
 
         for($this->i = 0; $this->i < count($this->images); $this->i++)
         {
             $instance = new User();
             $user = $instance->get($this->images[$this->i]['user_id']);
+
             echo sprintf('
                 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-5">
                     <figure class="effect-ming tm-video-item">
@@ -137,16 +167,35 @@ class Image
 
         if($this->checkContentToLoad())
         {
-            $this->images = Application::$app->db->getAllImagesForUser($user[0]['id'], $this->page);
+            if($this->redis->isCached($this->uri, 'user_' . $user[0]['id'] . '_all_photos_page_' . $this->page))
+            {   
+                $this->images = $this->redis->getCachedImages($this->uri, $this->page);
+            }
+            else
+            {
+                $this->images = Application::$app->db->getAllImagesForUser($user[0]['id'], $this->page);
+                
+                if(!empty($this->images))
+                {
+                    $this->redis->cacheImages($this->images, $this->uri, $this->page);
+                }
+            }
         }
         else
         {
-            $this->images = Application::$app->db->getImagesForUser($user[0]['id'], $this->page);
-        }
-
-        if(empty($this->images))
-        {
-            throw new NotFoundException();
+            if($this->redis->isCached($this->uri, 'user_' . $user[0]['id'] . '_photos_page_' . $this->page))
+            {   
+                $this->images = $this->redis->getCachedImages($this->uri, $this->page);
+            }
+            else
+            {
+                $this->images = Application::$app->db->getImagesForUser($user[0]['id'], $this->page);
+                
+                if(!empty($this->images))
+                {
+                    $this->redis->cacheImages($this->images, $this->uri, $this->page);
+                }
+            }
         }
 
         echo sprintf('
@@ -160,6 +209,15 @@ class Image
             ',
             $user[0]['username']
         );
+
+        if(empty($this->images))
+        {
+            echo '
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
+                    <p class="comment-text">There is no images</p>
+                </div>  
+            ';   
+        }
 
         for($this->i = 0; $this->i < count($this->images); $this->i++){
             echo sprintf('
@@ -262,11 +320,6 @@ class Image
             $image = Application::$app->db->getSingleImageById($id);
         }
 
-        if(empty($image))
-        {
-            throw new NotFoundException();
-        }
-
         $comments = Application::$app->db->getCommentsForImage($image[0]['id']);
 
         if(count($comments) == 0)
@@ -320,22 +373,12 @@ class Image
             $image = Application::$app->db->getSingleImageById($id);
         }
 
-        if(empty($image))
-        {
-            throw new NotFoundException();
-        }
-
         Application::$app->db->createCommentForImage($userId, $image[0]['id'], $comment);
     }
 
     public function editImageByModerator($nsfw, $hidden , $id)
     {
         $image = Application::$app->db->getSingleImageByIdWithoutRule($id);
-
-        if(empty($image))
-        {
-            throw new NotFoundException();
-        }
 
         $instance = new User();
         $user = $instance->get(Application::$app->session->getSession('user'));
@@ -395,6 +438,7 @@ class Image
         if($nsfwOld != $nsfwNew || $hiddenOld != $hiddenNew)
         {
             Application::$app->db->moderatorImageLogging($user[0]['id'], $user[0]['username'], $image[0]['id'], $image[0]['slug'], $action);
+            $this->redis->editImageFromCache($image, $newImage);
         }
     }
 
@@ -403,11 +447,6 @@ class Image
         $image = Application::$app->db->getSingleImageByIdWithoutRule($id);
         $oldName = $image[0]['file_name'];
         $format = substr($image[0]['file_name'], strpos($image[0]['file_name'], ".") + 1);
-
-        if(empty($image))
-        {
-            throw new NotFoundException();
-        }
 
         if($file_name != '')
         {
@@ -435,6 +474,8 @@ class Image
         
 
         Application::$app->db->editImageByAdmin($file_name, $slug, $nsfw, $hidden, $id);
+        $newImage = Application::$app->db->getSingleImageByIdWithoutRule($id);
+        $this->redis->editImageFromCache($image, $newImage);
 
         if(file_exists("uploads/$oldName"))
         {
@@ -484,11 +525,35 @@ class Image
 
         if($this->checkContentToLoad())
         {
-            $this->images = Application::$app->db->getAllImagesForUser($user[0]['id'], $this->page);
+            if($this->redis->isCached($this->uri, 'user_' . $user[0]['id'] . '_all_photos_page_' . $this->page))
+            {   
+                $this->images = $this->redis->getCachedImages($this->uri, $this->page);
+            }
+            else
+            {
+                $this->images = Application::$app->db->getAllImagesForUser($user[0]['id'], $this->page);
+                
+                if(!empty($this->images))
+                {
+                    $this->redis->cacheImages($this->images, $this->uri, $this->page);
+                }
+            }
         }
         else
         {
-            $this->images = Application::$app->db->getImagesForUser($user[0]['id'], $this->page);
+            if($this->redis->isCached($this->uri, 'user_' . $user[0]['id'] . '_photos_page_' . $this->page))
+            {   
+                $this->images = $this->redis->getCachedImages($this->uri, $this->page);
+            }
+            else
+            {
+                $this->images = Application::$app->db->getImagesForUser($user[0]['id'], $this->page);
+                
+                if(!empty($this->images))
+                {
+                    $this->redis->cacheImages($this->images, $this->uri, $this->page);
+                }
+            }
         }
 
         echo sprintf('
@@ -569,9 +634,11 @@ class Image
 
         $file['name'] = $name;
 
-        $image = Application::$app->db->createImage($file['name'], $slug, $user_id, $gallery_name);
-        
+        $image = Application::$app->db->createImage($file['name'], $slug, $user_id);
+
         $newImage = Application::$app->db->getSingleImageByIdWithoutRule($image[0]['id']);
+        
+        $this->redis->createImageInCache($newImage);
 
         Application::$app->db->AddToTableImageGallery($image[0]['id'], $gallery[0]['id']);
     }
@@ -601,6 +668,7 @@ class Image
             Application::$app->db->editImage($name, $slug, $image[0]['id'], Application::$app->session->getSession('user'));
 
             $newImage = Application::$app->db->getSingleImageByIdWithoutRule($image[0]['id']);
+            $this->redis->editImageFromCache($image, $newImage);
 
             if(file_exists("uploads/$oldName"))
             {
@@ -617,6 +685,7 @@ class Image
         Application::$app->db->deleteImageGalleryKey($id);
         Application::$app->db->deleteImageCommentKey($id);
         Application::$app->db->deleteImage($id);
+        $this->redis->deleteImageFromCache($image);
 
         if(file_exists("uploads/$filename"))
         {
