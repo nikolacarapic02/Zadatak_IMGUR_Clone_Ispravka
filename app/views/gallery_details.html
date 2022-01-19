@@ -10,15 +10,15 @@
     <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         {% if not _app.isGuest() %} 
             {% if user.isYourGallery(id) %}
-                <button type="button" class="btn btn-primary mb-3 {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" type="button" data-toggle="collapse" data-target="#collapseExample1" aria-expanded="false" aria-controls="collapseExample1" id="editButton">Edit <span class="fas fa-edit"></span></button>
+                <button type="button" class="btn btn-primary mb-3 {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %} editButton" type="button" data-toggle="collapse" data-target="#collapseExample1" aria-expanded="false" aria-controls="collapseExample1" >Edit <span class="fas fa-edit"></span></button>
                 <div class="collapse mt-2" id="collapseExample1">
                     <form action = "", method = "post">
                         <div class="form-group">
-                            <input type="text" name="new_name" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="New Gallery Name">
+                            <input type="text" name="new_name" class="form-control" aria-describedby="emailHelp" placeholder="New Gallery Name">
                             <small id="emailHelp" class="form-text text-muted">Add a new gallery name.</small>
                         </div>
                         <div class="form-group">
-                            <input type="text" name="slug" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="New Gallery Slug">
+                            <input type="text" name="slug" class="form-control" aria-describedby="emailHelp" placeholder="New Gallery Slug">
                             <small id="emailHelp" class="form-text text-muted">Add a new gallery slug.</small>
                         </div>
                         <div class="form-group">
@@ -31,10 +31,10 @@
                     </form>
                 </div>
                 <form action = "", method = "post">
-                    <button class="btn btn-primary mb-3 {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" type="submit" value="1" name="delete" id="editButton">Delete <span class="fas fa-trash-alt"></span></button>      
+                    <button class="btn btn-primary mb-3 {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %} editButton" type="submit" value="1" name="delete">Delete <span class="fas fa-trash-alt"></span></button>      
                 </form>
             {% elseif user.isModerator(_app.session.getSession('user')) %}
-                <button type="button" class="btn btn-primary {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" type="button" data-toggle="collapse" data-target="#collapseExample3" aria-expanded="false" aria-controls="collapseExample1" id="editButton">Edit <span class="fas fa-edit"></span></button>
+                <button type="button" class="btn btn-primary {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %} editButton" type="button" data-toggle="collapse" data-target="#collapseExample3" aria-expanded="false" aria-controls="collapseExample1">Edit <span class="fas fa-edit"></span></button>
                 <div class="collapse mt-2" id="collapseExample3">
                     <form action = "", method = "post">
                         <div class="btn-group" data-toggle="buttons">
@@ -54,7 +54,7 @@
                     </form>
                 </div>
             {% elseif user.isAdmin(_app.session.getSession('user')) %}
-                <button type="button" class="btn btn-primary {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %}" type="button" data-toggle="collapse" data-target="#collapseExample4" aria-expanded="false" aria-controls="collapseExample2" id="editButton">Edit <span class="fas fa-edit"></span></button>
+                <button type="button" class="btn btn-primary {% if user.isBanned(_app.session.getSession('user')) %} disabled {% endif %} editButton" type="button" data-toggle="collapse" data-target="#collapseExample4" aria-expanded="false" aria-controls="collapseExample2">Edit <span class="fas fa-edit"></span></button>
                 <div class="collapse mt-2" id="collapseExample4">
                     <form action = "", method = "post">
                         <div class="form-group">

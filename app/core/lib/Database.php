@@ -20,6 +20,65 @@ class Database
         return $this->pdo->prepare($sql);
     }
 
+    //Database extensions
+
+    public function addNsfwToUser()
+    {
+        $statement2 = $this->pdo->prepare("ALTER TABLE user ADD COLUMN nsfw tinyint(1) NOT NULL DEFAULT '0'");
+        $statement2->execute();
+    }
+
+    public function addStatusToUser()
+    {
+        $statement2 = $this->pdo->prepare("ALTER TABLE user ADD COLUMN status enum('active','inactive') COLLATE utf8mb4_unicode_ci DEFAULT 'active'");
+        $statement2->execute();
+    }
+
+    public function dropTableDoctrine()
+    {
+        $statement = $this->pdo->prepare("DROP TABLE IF EXISTS doctrine_migration_versions;");
+        $statement->execute();
+    }
+
+    public function createTableModeratorLogging()
+    {
+        $statement = $this->pdo->prepare("CREATE TABLE moderator_logging(
+            moderator_id int(11) NOT NULL,
+            image_id int(11) DEFAULT NULL,
+            gallery_id int(11) DEFAULT NULL,
+            action longtext COLLATE utf8mb4_unicode_ci NOT NULL
+        )");
+        $statement->execute();
+    }
+
+    public function optimizeDatabase()
+    {
+        $statement1 = $this->pdo->prepare("CREATE INDEX image_name_slug ON image (file_name, slug)");
+        $statement1->execute();
+
+        $statement2 = $this->pdo->prepare("CREATE INDEX gallery_name_slug ON gallery (name, slug)");
+        $statement2->execute();
+
+        $statement3 = $this->pdo->prepare("SELECT TABLE_SCHEMA, TABLE_NAME FROM information_schema.TABLES 
+        WHERE TABLE_SCHEMA = 'quant-zadatak' ORDER BY TABLE_SCHEMA, TABLE_NAME");
+        $statement3->execute();
+
+        if ($statement3->rowCount() > 0) {
+            $sql4 = "OPTIMIZE TABLE ";
+            $i = 0;
+            while ($row = $statement3->fetch(\PDO::FETCH_ASSOC)) {
+               $sql4 .= '`' . $row['TABLE_SCHEMA'] . '`.`' . $row['TABLE_NAME'] . '`, ';
+               $i++;
+            }
+            $sql4 = substr($sql4, 0, strlen($sql4) - 2);
+
+            $statement4 = $this->pdo->prepare($sql4);
+            $statement4->execute();
+        }
+    }
+
+    //End Database extensions
+
     //User
 
     public function registerUser($attributes)

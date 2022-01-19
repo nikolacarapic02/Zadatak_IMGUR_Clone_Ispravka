@@ -101,7 +101,11 @@ class Gallery
             else
             {
                 $this->galleries = Application::$app->db->getAllGaleriesForPage($this->page);
-                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+
+                if(!empty($this->galleries))
+                {
+                    $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+                }
             }
         }
         else
@@ -113,7 +117,11 @@ class Gallery
             else
             {
                 $this->galleries = Application::$app->db->getGalleriesForPage($this->page);
-                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+                
+                if(!empty($this->galleries))
+                {
+                    $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+                }
             }
         }
 
@@ -162,7 +170,11 @@ class Gallery
             else
             {
                 $this->galleries = Application::$app->db->getAllGalleriesForUser($user[0]['id'], $this->page);
-                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+                
+                if(!empty($this->galleries))
+                {
+                    $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+                }
             }
         }
         else
@@ -174,7 +186,11 @@ class Gallery
             else
             {
                 $this->galleries = Application::$app->db->getGalleriesForUser($user[0]['id'], $this->page);
-                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+                
+                if(!empty($this->galleries))
+                {
+                    $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+                }
             }
         }
 
@@ -290,7 +306,7 @@ class Gallery
         {
             echo sprintf('
                 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-1 mt-2">
-                    <p class="comment-text">There is no galleries</p>
+                    <p class="comment-text">There is no photos</p>
                 </div>   
             ');
         }
@@ -557,7 +573,11 @@ class Gallery
             else
             {
                 $this->galleries = Application::$app->db->getAllGalleriesForUser($user[0]['id'], $this->page);
-                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+                
+                if(!empty($this->galleries))
+                {
+                    $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+                }
             }
         }
         else
@@ -569,7 +589,11 @@ class Gallery
             else
             {
                 $this->galleries = Application::$app->db->getGalleriesForUser($user[0]['id'], $this->page);
-                $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+                
+                if(!empty($this->galleries))
+                {
+                    $this->redis->cacheGalleries($this->galleries, $this->uri, $this->page);
+                }
             }
         }
 
@@ -593,9 +617,9 @@ class Gallery
                     <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
                         <p class="comment-text">There is no galleries</p>
                     </div>     
-                    <div class="row tm-mb-90">
+                    <div class="tm-mb-90">
                         <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
-                            <a href="/" class="btn btn-primary tm-btn disabled" id="moreButtonProfile"><span class="fas fa-plus"></span>  More</a>
+                            <a href="/" class="btn btn-primary tm-btn disabled moreButton"><span class="fas fa-plus"></span>  More</a>
                         </div>            
                     </div>     
                 '
@@ -625,9 +649,9 @@ class Gallery
             }
 
             echo sprintf('
-                <div class="row tm-mb-90">
+                <div class="tm-mb-90">
                     <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
-                        <a href="/user_galleries?id=%s" class="btn btn-primary tm-btn" id="moreButtonProfile"><span class="fas fa-plus"></span>  More</a>
+                        <a href="/user_galleries?id=%s" class="btn btn-primary tm-btn moreButton"><span class="fas fa-plus"></span>  More</a>
                     </div>            
                 </div>  
                 ',

@@ -214,7 +214,7 @@ class Image
         {
             echo '
                 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
-                    <p class="comment-text">There is no images</p>
+                    <p class="comment-text">There is no photos</p>
                 </div>  
             ';   
         }
@@ -269,7 +269,7 @@ class Image
             <div class="container-fluid tm-container-content tm-mt-60">
                 <div class="row tm-mb-50">            
                     <div class="col-xl-8 col-lg-7 col-md-6 col-sm-12">
-                        <img src="uploads/%s" alt="%s" class="img-fluid" id="photoDetail">
+                        <img src="uploads/%s" alt="%s" class="img-fluid photoDetail">
                     </div>
                     <div class="col-xl-4 col-lg-5 col-md-6 col-sm-12">
                         <div class="tm-bg-gray tm-video-details">
@@ -573,11 +573,11 @@ class Image
         {
             echo sprintf('
                     <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
-                        <p class="comment-text">There is no images</p>
+                        <p class="comment-text">There is no photos</p>
                     </div>     
-                    <div class="row tm-mb-90">
+                    <div class="tm-mb-90">
                         <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
-                            <a href="/" class="btn btn-primary tm-btn disabled" id="moreButtonProfile"><span class="fas fa-plus"></span>  More</a>
+                            <a href="/" class="btn btn-primary tm-btn disabled moreButton"><span class="fas fa-plus"></span>  More</a>
                         </div>            
                     </div>     
                 '
@@ -608,9 +608,9 @@ class Image
             }
 
             echo sprintf('
-                <div class="row tm-mb-90">
+                <div class="tm-mb-90">
                     <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
-                        <a href="/user_photos?id=%s" class="btn btn-primary tm-btn" id="moreButtonProfile"><span class="fas fa-plus"></span>  More</a>
+                        <a href="/user_photos?id=%s" class="btn btn-primary tm-btn moreButton"><span class="fas fa-plus"></span>  More</a>
                     </div>            
                 </div>  
             ',
