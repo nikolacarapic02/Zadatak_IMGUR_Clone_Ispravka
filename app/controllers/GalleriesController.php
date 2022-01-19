@@ -24,14 +24,16 @@ class GalleriesController extends Controller
 
     public function index()
     {
+        $this->galleries->restrictPage($this->galleries);
+
         return $this->view->render('galleries.html', [
             'title' => 'Galleries', 
             'galleryContent' => $this->galleries,
-            'numOfPages' => $this->galleries->numOfPages(),
-            'page' => $this->galleries->page,
-            'pageNumPre' => $this->galleries->page - 1,
-            'pageNumNext' => $this->galleries->page + 1,
-            'pageNum' => $this->galleries->page,
+            'numOfPages' => $this->galleries->numOfPages($this->galleries),
+            'page' => $this->galleries->getPage(),
+            'pageNumPre' => $this->galleries->getPage() - 1,
+            'pageNumNext' => $this->galleries->getPage() + 1,
+            'pageNum' => $this->galleries->getPage(),
         ]);
     }
 
@@ -213,14 +215,18 @@ class GalleriesController extends Controller
             throw new NotFoundException();
         }
         
+        $this->galleries->restrictUserPage($this->galleries, $id);
+
+        $userData = $this->user->get($id);
+
         return $this->view->render('user_galleries.html', [
-            'title' => 'User Galleries',
+            'title' => ucwords($userData[0]['username']) . ' Galleries',
             'galleryContent' => $this->galleries,
-            'numOfPages' => $this->galleries->numOfUserPages($id),
-            'page' => $this->galleries->page,
-            'pageNumPre' => $this->galleries->page - 1,
-            'pageNumNext' => $this->galleries->page + 1,
-            'pageNum' => $this->galleries->page,
+            'numOfPages' => $this->galleries->numOfUserPages($this->galleries, $id),
+            'page' => $this->galleries->getPage(),
+            'pageNumPre' => $this->galleries->getPage() - 1,
+            'pageNumNext' => $this->galleries->getPage() + 1,
+            'pageNum' => $this->galleries->getPage(),
             'id' => $id
         ]);
     }

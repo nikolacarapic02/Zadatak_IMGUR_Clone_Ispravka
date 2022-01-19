@@ -3,43 +3,19 @@
 namespace app\models;
 
 use app\core\Application;
-use app\cache\Cache;
+use app\core\lib\Model;
 use app\exceptions\ForbidenException;
 
-class Gallery
+class Gallery extends Model
 {
     private array $galleries = [];
     private int $i = 0;
-    private string $uri;
-    private Cache $redis;
-    public string $page = '';
+    private static $model;
 
     public function __construct()
     {       
-        if(key_exists('page',$_GET))
-        {
-            if(is_numeric($_GET['page']) &&  $_GET['page'] > 0)
-            {
-                $this->page = $_GET['page']; 
-
-                if($this->page > $this->numOfPages())
-                {
-                    $this->page = $this->numOfPages();
-                }
-            }
-            else
-            {
-                $this->page = 1;
-            }
-        } 
-        else
-        {
-            $this->page = 1;
-        }
-
-        $this->redis = new Cache();
-
-        $this->uri = Application::$app->request->getPath();
+        self::$model = $this;
+        parent::__construct(self::$model);
     }
 
     public function isNsfw($id)
@@ -56,6 +32,11 @@ class Gallery
         }
     }
 
+    public function getPage()
+    {
+        return $this->page;
+    }
+
     public function isHidden($id)
     {
         $gallery = Application::$app->db->getSingleGalleryWithoutRule($id);
@@ -63,26 +44,6 @@ class Gallery
         if($gallery[0]['hidden'] == 1)
         {
             return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    public function checkContentToLoad()
-    {
-        if(Application::$app->session->getSession('user'))
-        {
-            $user = new User();
-            if($user->isModerator(Application::$app->session->getSession('user')) || $user->isAdmin(Application::$app->session->getSession('user')))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         }
         else
         {
@@ -155,11 +116,6 @@ class Gallery
     {
         $instance = new User();
         $user = $instance->get($id);
-
-        if($this->page > $this->numOfUserPages($id))
-        {
-            $this->page = $this->numOfUserPages($id);
-        }
 
         if($this->checkContentToLoad())
         {
@@ -522,41 +478,6 @@ class Gallery
         Application::$app->db->editGalleryByAdmin($name, $slug, $nsfw, $hidden, $description, $id);
         $newGallery = Application::$app->db->getSingleGalleryWithoutRule($id);
         $this->redis->editGalleryFromCache($gallery, $newGallery);
-    }
-
-    public function numOfPages()
-    {
-        if($this->checkContentToLoad())
-        {
-            $instance = Application::$app->db->getNumOfAllGalleries();
-        }
-        else
-        {
-            $instance = Application::$app->db->getNumOfGalleries();
-        }
-
-        $numGall = $instance[0]['num'];
-
-        return ceil($numGall/16);
-    }
-
-    public function numOfUserPages($id)
-    {
-        $instance = new User();
-        $user = $instance->get($id);
-
-        if($this->checkContentToLoad())
-        {
-            $num = Application::$app->db->getNumOfYourAllGalleries($user[0]['id']);
-        }
-        else
-        {
-            $num = Application::$app->db->getNumOfYourGalleries($user[0]['id']);
-        }
-
-        $numImg = $num[0]['num'];
-
-        return ceil($numImg/8);
     }
 
     public function galleriesForProfile($id)

@@ -3,17 +3,18 @@
 namespace app\models;
 
 use app\core\Application;
-use app\cache\Cache;
+use app\core\lib\Model;
 use app\exceptions\NotFoundException;
 
-class User
+class User extends Model
 {
     private array $user = [];
-    private Cache $redis;
-
+    private static $model;
+    
     public function __construct()
     {
-        $this->redis = new Cache();
+        self::$model = $this;
+        parent::__construct(self::$model);
     }
 
     public function register(array $attributes)
@@ -351,14 +352,14 @@ class User
 
         }
 
-            echo sprintf('
-                                        </tbody>
-                                    </table>
-                                </div>
+        echo sprintf('
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-            ');
+            </div>
+        ');
     }
 }

@@ -24,14 +24,16 @@ class PhotosController extends Controller
 
     public function index()
     {
+        $this->images->restrictPage($this->images);
+
         return $this->view->render('photos.html', [
             'title' => 'Photos', 
             'imageContent' => $this->images,
-            'numOfPages' => $this->images->numOfPages(),
-            'page' => $this->images->page,
-            'pageNumPre' => $this->images->page - 1,
-            'pageNumNext' => $this->images->page + 1,
-            'pageNum' => $this->images->page,
+            'numOfPages' => $this->images->numOfPages($this->images),
+            'page' => $this->images->getPage(),
+            'pageNumPre' => $this->images->getPage() - 1,
+            'pageNumNext' => $this->images->getPage() + 1,
+            'pageNum' => $this->images->getPage(),
         ]);
     }
 
@@ -194,14 +196,18 @@ class PhotosController extends Controller
             throw new NotFoundException();
         }
 
+        $this->images->restrictUserPage($this->images, $id);
+
+        $userData = $this->user->get($id);
+
         return $this->view->render('user_photos.html', [
-            'title' => 'User Photos',
+            'title' => ucwords($userData[0]['username']) . ' Photos',
             'imageContent' => $this->images,
-            'numOfPages' => $this->images->numOfUserPages($id),
-            'page' => $this->images->page,
-            'pageNumPre' => $this->images->page - 1,
-            'pageNumNext' => $this->images->page + 1,
-            'pageNum' => $this->images->page,
+            'numOfPages' => $this->images->numOfUserPages($this->images, $id),
+            'page' => $this->images->getPage(),
+            'pageNumPre' => $this->images->getPage() - 1,
+            'pageNumNext' => $this->images->getPage() + 1,
+            'pageNum' => $this->images->getPage(),
             'id' => $id
         ]);
     }

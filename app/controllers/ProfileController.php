@@ -34,7 +34,7 @@ class ProfileController extends Controller
         }
         
         return $this->view->render('profile.html', [
-            'title' => 'Profile',
+            'title' => 'Your Profile',
             'userContent' => $this->user,
             'imageContent' => $this->images,
             'galleryContent' => $this->galleries,
@@ -130,9 +130,11 @@ class ProfileController extends Controller
                 $this->user->changeUserRole($id, $data['role']);
             }
         }
+
+        $userData = $this->user->get($id);
         
         return $this->view->render('other_profile.html', [
-            'title' => 'User Profile',
+            'title' => ucwords($userData[0]['username']) . ' Profile',
             'userContent' => $this->user,
             'imageContent' => $this->images,
             'galleryContent' => $this->galleries,

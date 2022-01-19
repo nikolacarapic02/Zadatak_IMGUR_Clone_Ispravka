@@ -2,44 +2,25 @@
 
 namespace app\models;
 
+use app\core\lib\Model;
 use app\core\Application;
-use app\cache\Cache;
 use app\exceptions\NotFoundException;
 
-class Image
+class Image extends Model
 {
     private array $images = [];
     private int $i = 0;
-    private string $uri;
-    private Cache $redis;
-    public string $page = '';
+    private static $model;
 
     public function __construct()
     {    
-        if(key_exists('page',$_GET))
-        {
-            if(is_numeric($_GET['page']) && $_GET['page'] > 0)
-            {
-                $this->page = $_GET['page']; 
+        self::$model = $this;
+        parent::__construct(self::$model);
+    }
 
-                if($this->page > $this->numOfPages())
-                {
-                    $this->page = $this->numOfPages();
-                }
-            }
-            else
-            {
-                $this->page = 1;
-            }
-        } 
-        else
-        {
-            $this->page = 1;
-        }
-
-        $this->redis = new Cache();
-
-        $this->uri = Application::$app->request->getPath();
+    public function getPage()
+    {
+        return $this->page;
     }
 
     public function isNsfw($id)
@@ -63,27 +44,6 @@ class Image
         if($image[0]['hidden'] == 1)
         {
             return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    public function checkContentToLoad()
-    {
-        if(Application::$app->session->getSession('user'))
-        {
-            $user = new User();
-
-            if($user->isModerator(Application::$app->session->getSession('user')) || $user->isAdmin(Application::$app->session->getSession('user')))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         }
         else
         {
@@ -159,11 +119,6 @@ class Image
     {
         $instance = new User();
         $user = $instance->get($id);
-
-        if($this->page > $this->numOfUserPages($id))
-        {
-            $this->page = $this->numOfUserPages($id);
-        }
 
         if($this->checkContentToLoad())
         {
@@ -481,41 +436,6 @@ class Image
         {
             rename("uploads/$oldName", "uploads/$file_name");
         }
-    }
-
-    public function numOfPages()
-    {
-        if($this->checkContentToLoad())
-        {
-            $num = Application::$app->db->getNumOfAllImages();
-        }
-        else
-        {
-            $num = Application::$app->db->getNumOfImages();
-        }
-
-        $numImg = $num[0]['num'];
-
-        return ceil($numImg/16);
-    }
-
-    public function numOfUserPages($id)
-    {
-        $instance = new User();
-        $user = $instance->get($id);
-
-        if($this->checkContentToLoad())
-        {
-            $num = Application::$app->db->getNumOfYourAllImages($user[0]['id']);
-        }
-        else
-        {
-            $num = Application::$app->db->getNumOfYourImages($user[0]['id']);
-        }
-
-        $numImg = $num[0]['num'];
-
-        return ceil($numImg/8);
     }
 
     public function imagesForProfile($id)
