@@ -21,6 +21,8 @@ class ModeratorLoggingController extends Controller
 
     public function index()
     {
+        $content = $this->user->getModeratorLogging();
+
         if(Application::$app->isGuest())
         {
             throw new ForbidenException();
@@ -35,7 +37,7 @@ class ModeratorLoggingController extends Controller
         
         return $this->view->render('moderator_logging.html', [
             'title' => 'Moderator Logging',
-            'userContent' => $this->user
+            'content' => $content
         ]);
     }
 }

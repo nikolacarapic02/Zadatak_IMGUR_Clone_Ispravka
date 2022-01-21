@@ -1,70 +1,166 @@
 {% extends 'layout/main.html' %}
 {% block content %}
 <div class="container-fluid tm-container-content tm-mt-30">
-    {{ userContent.profileDetails(userId) }}
-    <div class="col-xl-7 col-lg-7 col-md-6 col-sm-12 mt-3">
-        <div class="col-12 d-flex tm-paging-col justify-content-between align-items-center mb-4">
-            <h1 class="tm-text-primary">Upload Image / Create Gallery</h1>
+    <div class="container-fluid tm-container-content tm-mt-60">
+        <div class="row tm-mb-50">            
+            <div class="col-xl-5 col-lg-5 col-md-6 col-sm-12 mb-3">
+                <div class="tm-bg-gray tm-video-details">
+                    <div class="text-center mb-5">
+                        <h2 class="tm-text-primary">Hello <i>{{ userContent.0.username }}</i></h2>
+                    </div>                    
+                    <div class="mb-4" id="Details">
+                        <div class="mr-4 mb-2">
+                            <span class="tm-text-gray-dark">Username: </span><span class="tm-text-primary">{{ userContent.0.username }}</span>
+                        </div>
+                        <div class="mr-4 mb-2 d-flex flex-wrap">
+                            <span class="tm-text-gray-dark">Email: </span><span class="tm-text-primary ms-2">{{ userContent.0.email }}</span>
+                        </div>
+                        <div class="mr-4 mb-2 d-flex flex-wrap">
+                            <span class="tm-text-gray-dark">Profile status: </span><span class="tm-text-primary ms-2">{{ userContent.0.status }}</span>
+                        </div>
+                        <div class="mr-4 mb-2 d-flex flex-wrap">
+                            <span class="tm-text-gray-dark">Plan: </span><span class="tm-text-primary ms-2">{{ plan.0.plan }}</span>
+                        </div>
+                        <div class="mr-4 mb-2 d-flex flex-wrap">
+                            <span class="tm-text-gray-dark">Expire date: </span><span class="tm-text-primary ms-2">{{ planExpire }}</span>
+                        </div>
+                        <div class="mr-4 mb-2 d-flex flex-wrap">
+                            <span class="tm-text-gray-dark">Plan status: </span><span class="tm-text-primary ms-2">{{ planStatus }}</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <form action="" method="post">
+                            <button type="submit" name="cancel" class="btn btn-primary editButton" {% if plan.0.plan == 'free' or plan.0.status == 0 %} disabled {% endif %}>Cancel Plan</button>
+                        </form>
+                    </div>
+                </div>
+            </div> 
+            <div class="col-xl-7 col-lg-7 col-md-6 col-sm-12 mt-3">
+                <div class="col-12 d-flex tm-paging-col justify-content-between align-items-center mb-4">
+                    <h1 class="tm-text-primary">Upload Image / Create Gallery</h1>
+                </div>  
+                <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col mb-4">
+                    <button type="button" class="btn btn-primary {% if userContent.isBanned(userId) %} disabled {% endif %} editButton" type="button" data-toggle="collapse" data-target="#collapseExample1" aria-expanded="false" aria-controls="collapseExample2">Create <span class="fa fa-plus-circle"></span></button>
+                </div> 
+                <!-- Create Images/Galleries -->
+                <div class="col-12 d-flex justify-content-between tm-paging-col">
+                    <div class="mt-2 col-lg-6 col-md-6 col-sm-12 {% if not _app.hasErrors() %} collapse {% endif %}" id="collapseExample1">
+                        <h3 class="tm-text-primary">Upload Image</h3>
+                        <form action="" method = "post" enctype = "multipart/form-data">
+                            <div class="form-group">
+                                <input type="text" name="image_name" {% if errors.image_name == '' and values.image_name == '' %} class = "form-control" {% elseif errors.image_name == '' and values.image_name != '' %} class = "form-control is-valid" value = "{{ values.image_name }}" {% else %} class = "form-control is-invalid" {% endif %} aria-describedby="emailHelp" placeholder="Image Name">
+                                {% if errors.image_name != '' %} <div class="invalid-feedback">{{ errors.image_name }} </div> {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="image_slug" {% if errors.image_slug == '' and values.image_slug == '' %} class = "form-control" {% elseif errors.image_slug == '' and values.image_slug != '' %} class = "form-control is-valid" value = "{{ values.image_slug }}" {% else %} class = "form-control is-invalid" {% endif %} aria-describedby="emailHelp" placeholder="Image Slug">
+                                {% if errors.image_slug != '' %} <div class="invalid-feedback">{{ errors.image_slug }} </div> {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="gallery_name" {% if errors.gallery_name == '' and values.gallery_name == '' %} class = "form-control" {% elseif errors.gallery_name == '' and values.gallery_name != '' %} class = "form-control is-valid" value = "{{ values.gallery_name }}" {% else %} class = "form-control is-invalid" {% endif %} aria-describedby="emailHelp" placeholder="Gallery Name">
+                                {% if errors.gallery_name != '' %} <div class="invalid-feedback">{{ errors.gallery_name }} </div> {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <input type="file" name="file" class="btn" id="exampleInputPassword1" placeholder="Password">
+                                {% if errors.file != '' %} <div class="text-danger">{{ errors.file }} </div> {% endif %}
+                            </div>
+                            <div class="form-group tm-text-right">
+                                <button type="submit" name="submitImage" class="btn btn-primary">Upload</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="mt-2 col-lg-6 col-md-6 col-sm-12 {% if not _app.hasErrors() %} collapse {% endif %}" id="collapseExample1">
+                        <h3 class="tm-text-primary">Create Gallery</h3>
+                        <form action="" method="post">
+                            <div class="form-group">
+                                <input type="text" name="name" {% if errors.name == '' and values.name == '' %} class = "form-control" {% elseif errors.name == '' and values.name != '' %} class = "form-control is-valid" value = "{{ values.name }}" {% else %} class = "form-control is-invalid" {% endif %} aria-describedby="emailHelp" placeholder="Gallery Name" >
+                                {% if errors.name != '' %} <div class="invalid-feedback">{{ errors.name }}</div> {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="gallery_slug" {% if errors.gallery_slug == '' and values.gallery_slug == '' %} class = "form-control" {% elseif errors.gallery_slug == '' and values.gallery_slug != '' %} class = "form-control is-valid" value = "{{ values.gallery_slug }}" {% else %} class = "form-control is-invalid" {% endif %} aria-describedby="emailHelp" placeholder="Gallery Slug" >
+                                {% if errors.gallery_slug != '' %} <div class="invalid-feedback">{{ errors.gallery_slug }}</div> {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <textarea rows="8" name="description" {% if errors.description == '' and values.description == '' %} class = "form-control" {% elseif errors.description == '' and values.description != '' %} class = "form-control is-valid" {% else %} class = "form-control is-invalid" {% endif %} placeholder="Description">{% if values.description != '' and errors.description == '' %} {{ values.description }} {% endif %}</textarea>
+                                {% if errors.description != '' %} <div class="invalid-feedback">{{ errors.description }}</div> {% endif %}
+                            </div>
+                            <div class="form-group tm-text-right">
+                                <button type="submit" name="submitGallery" class="btn btn-primary">Create</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>      
+            </div>
+        </div>
+    </div>
+    <div class="row tm-mb-30 tm-gallery">
+        <div class="container-fluid tm-container-content tm-mt-30">
+            <div class="row mb-4">
+                <h2 class="tm-text-primary ">
+                    Photos of {{ userContent.0.username }}
+                </h2>
+            </div>
+            <hr class="underline">
+        </div>
+        {% if imageContent is empty %}
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
+                <p class="comment-text">There is no photos</p>
+            </div>       
+        {% else %}
+            {% for image in imageContent %}
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
+                <figure class="effect-ming tm-video-item">
+                    <img src="uploads/{{ image.file_name }}" alt="Image" class="img-fluid">
+                    <figcaption class="d-flex align-items-center justify-content-center">
+                        <h2>Details</h2>
+                        <a href="/photo_details?id={{ image.id }}">View more</a>
+                    </figcaption>                    
+                </figure>
+                <div class="d-flex justify-content-between tm-text-gray">
+                    <span class="tm-text-gray-light">{{ image.file_name }}</span>
+                </div>
+            </div>  
+            {% endfor %}
+        {% endif %}
+        <div class="tm-mb-90">
+            <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
+                <a href="/user_photos?id={{ userContent.0.id }}" class="btn btn-primary tm-btn moreButton {% if imageContent is empty %} disabled {% endif %}"><span class="fas fa-plus"></span>  More</a>
+            </div>            
         </div>  
-        <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col mb-4">
-            <button type="button" class="btn btn-primary {% if userContent.isBanned(userId) %} disabled {% endif %} editButton" type="button" data-toggle="collapse" data-target="#collapseExample1" aria-expanded="false" aria-controls="collapseExample2">Create <span class="fa fa-plus-circle"></span></button>
-        </div> 
-        <!-- Create Images/Galleries -->
-        <div class="col-12 d-flex justify-content-between tm-paging-col">
-            <div class="mt-2 col-6 {% if not _app.hasErrors() %} collapse {% endif %}" id="collapseExample1">
-                <h3 class="tm-text-primary">Upload Image</h3>
-                <form action="" method = "post" enctype = "multipart/form-data">
-                    <div class="form-group">
-                        <input type="text" name="image_name" {% if errors.image_name == '' and values.image_name == '' %} class = "form-control" {% elseif errors.image_name == '' and values.image_name != '' %} class = "form-control is-valid" value = "{{ values.image_name }}" {% else %} class = "form-control is-invalid" {% endif %} aria-describedby="emailHelp" placeholder="Image Name">
-                        {% if errors.image_name != '' %} <div class="invalid-feedback">{{ errors.image_name }} </div> {% endif %}
-                    </div>
-                    <div class="form-group">
-                        <input type="text" name="image_slug" {% if errors.image_slug == '' and values.image_slug == '' %} class = "form-control" {% elseif errors.image_slug == '' and values.image_slug != '' %} class = "form-control is-valid" value = "{{ values.image_slug }}" {% else %} class = "form-control is-invalid" {% endif %} aria-describedby="emailHelp" placeholder="Image Slug">
-                        {% if errors.image_slug != '' %} <div class="invalid-feedback">{{ errors.image_slug }} </div> {% endif %}
-                    </div>
-                    <div class="form-group">
-                        <input type="text" name="gallery_name" {% if errors.gallery_name == '' and values.gallery_name == '' %} class = "form-control" {% elseif errors.gallery_name == '' and values.gallery_name != '' %} class = "form-control is-valid" value = "{{ values.gallery_name }}" {% else %} class = "form-control is-invalid" {% endif %} aria-describedby="emailHelp" placeholder="Gallery Name">
-                        {% if errors.gallery_name != '' %} <div class="invalid-feedback">{{ errors.gallery_name }} </div> {% endif %}
-                    </div>
-                    <div class="form-group">
-		                <input type="file" name="file" class="btn" id="exampleInputPassword1" placeholder="Password">
-                        {% if errors.file != '' %} <div class="text-danger">{{ errors.file }} </div> {% endif %}
-		            </div>
-                    <div class="form-group tm-text-right">
-                        <button type="submit" name="submitImage" class="btn btn-primary">Upload</button>
-                    </div>
-                </form>
+    </div>
+    <div class="row tm-mb-30 tm-gallery">
+        <div class="container-fluid tm-container-content tm-mt-30">
+            <div class="row mb-4">
+                <h2 class="tm-text-primary ">
+                    Galleries of {{ userContent.0.username }}
+                </h2>
             </div>
-            <div class="mt-2 col-6 {% if not _app.hasErrors() %} collapse {% endif %}" id="collapseExample1">
-                <h3 class="tm-text-primary">Create Gallery</h3>
-                <form action="" method="post">
-                    <div class="form-group">
-                        <input type="text" name="name" {% if errors.name == '' and values.name == '' %} class = "form-control" {% elseif errors.name == '' and values.name != '' %} class = "form-control is-valid" value = "{{ values.name }}" {% else %} class = "form-control is-invalid" {% endif %} aria-describedby="emailHelp" placeholder="Gallery Name" >
-                        {% if errors.name != '' %} <div class="invalid-feedback">{{ errors.name }}</div> {% endif %}
-                    </div>
-                    <div class="form-group">
-                        <input type="text" name="gallery_slug" {% if errors.gallery_slug == '' and values.gallery_slug == '' %} class = "form-control" {% elseif errors.gallery_slug == '' and values.gallery_slug != '' %} class = "form-control is-valid" value = "{{ values.gallery_slug }}" {% else %} class = "form-control is-invalid" {% endif %} aria-describedby="emailHelp" placeholder="Gallery Slug" >
-                        {% if errors.gallery_slug != '' %} <div class="invalid-feedback">{{ errors.gallery_slug }}</div> {% endif %}
-                    </div>
-                    <div class="form-group">
-                        <textarea rows="8" name="description" {% if errors.description == '' and values.description == '' %} class = "form-control" {% elseif errors.description == '' and values.description != '' %} class = "form-control is-valid" {% else %} class = "form-control is-invalid" {% endif %} placeholder="Description">{% if values.description != '' and errors.description == '' %} {{ values.description }} {% endif %}</textarea>
-                        {% if errors.description != '' %} <div class="invalid-feedback">{{ errors.description }}</div> {% endif %}
-                    </div>
-                    <div class="form-group tm-text-right">
-                        <button type="submit" name="submitGallery" class="btn btn-primary">Create</button>
-                    </div>
-                </form>
-            </div>
+            <hr class="underline">
+        </div>
+        {% if galleryContent is empty %}
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
+            <p class="comment-text">There is no galleries</p>
         </div>      
-    </div>
-</div>
-</div>
-    <div class="row tm-mb-30 tm-gallery">
-        {{ imageContent.imagesForProfile(userId) }}
-    </div>
-    <div class="row tm-mb-30 tm-gallery">
-        {{ galleryContent.galleriesForProfile(userId) }}
+        {% else %}
+            {% for gallery in galleryContent %}
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
+                <figure class="effect-ming tm-video-item">
+                    <img src="assets/img/gallery.jpg" alt="Gallery" class="img-fluid">
+                    <figcaption class="d-flex align-items-center justify-content-center">
+                        <h2>Details</h2>
+                        <a href="/gallery_details?id={{ gallery.id }}">View more</a>
+                    </figcaption>                    
+                </figure>
+                <div class="d-flex justify-content-between tm-text-gray">
+                    <span class="tm-text-gray-light">{{ gallery.name }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+        <div class="tm-mb-90">
+            <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
+                <a href="/user_galleries?id={{ userContent.0.id }}" class="btn btn-primary tm-btn moreButton {% if galleryContent is empty %} disabled {% endif %}"><span class="fas fa-plus"></span>  More</a>
+            </div>            
+        </div>  
     </div> 
 </div>
-
 {% endblock %}

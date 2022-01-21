@@ -1,7 +1,34 @@
 {% extends 'layout/main.html' %}
 {% block content %}
-<div class="container-fluid tm-container-content tm-mt-60">     
-    {{ imageContent.getUserImages(id) }}
+<div class="container-fluid tm-container-content tm-mt-60">  
+    <div class="row mb-2">
+        <h2 class="col-6 tm-text-primary">
+            Photos by {{ userContent.0.username }}
+        </h2>
+    </div>
+    <hr class="underline">
+    <div class="row tm-mb-90 tm-gallery">   
+    {% if imageContent is empty %}
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
+            <p class="comment-text">There is no photos</p>
+        </div>  
+    {% endif %}
+    {% for image in imageContent %}
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-5">
+            <figure class="effect-ming tm-video-item">
+                <img src="uploads/{{ image.file_name }}" alt="Image" class="img-fluid">
+                <figcaption class="d-flex align-items-center justify-content-center">
+                    <h2>Details</h2>
+                    <a href="/photo_details?id={{ image.id }}">View more</a>
+                </figcaption>                    
+            </figure>
+            <div class="d-flex justify-content-between tm-text-gray">
+                <span class="tm-text-gray-light">{{ image.file_name }}</span>
+                <a href="/user_profile?id={{ userContent.0.id }}">{{ userContent.0.username }}</a>
+            </div>
+        </div>  
+    {% endfor %}
+    </div>
     <div class="row tm-mb-90">
         {% if pageNum > 1 %}
             {% set pageNum = pageNum - 1 %}

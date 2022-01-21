@@ -3,13 +3,19 @@
 namespace app\models;
 
 use app\core\Application;
+use app\core\lib\interfaces\Subscription;
 use app\core\lib\Model;
 use app\exceptions\NotFoundException;
 
-class User extends Model
+class User extends Model implements Subscription
 {
     private array $user = [];
     private static $model;
+    private array $plan = [array( 
+        'plan' => 'free',
+        'plan_expire' => 'none',
+        'status' => '1'
+    )];
     
     public function __construct()
     {
@@ -31,6 +37,30 @@ class User extends Model
     {
         Application::$app->session->unsetSession('user');
         $this->redis->clearFromHash('/profile', 'user');
+    }
+
+    public function subscribe(array $attributes)
+    {
+        Application::$app->db->subscribeToPlan(Application::$app->session->getSession('user'), $attributes);
+    }
+
+    public function cancelSubscription($user_id)
+    {
+        Application::$app->db->cancelSubscriptionForUser($user_id);
+    }
+
+    public function getPlan($user_id)
+    {
+        $value = Application::$app->db->getPlanInfo($user_id);
+        
+        if(!empty($value))
+        {
+            return $value;
+        }
+        else
+        {
+            return $this->plan;
+        }
     }
 
     public function get($id)
@@ -187,36 +217,10 @@ class User extends Model
             throw new NotFoundException();
         }
 
-        echo sprintf('
-            <div class="container-fluid tm-container-content tm-mt-60">
-                <div class="row tm-mb-50">            
-                    <div class="col-xl-5 col-lg-5 col-md-6 col-sm-12">
-                        <div class="tm-bg-gray tm-video-details">
-                            <div class="text-center mb-5">
-                                <h2 class="tm-text-primary">Hello <i>%s</i></h2>
-                            </div>                    
-                            <div class="mb-4" id="Details">
-                                <div class="mr-4 mb-2">
-                                    <span class="tm-text-gray-dark">Username: </span><span class="tm-text-primary">%s</span>
-                                </div>
-                                <div class="mr-4 mb-2 d-flex flex-wrap">
-                                    <span class="tm-text-gray-dark">Email: </span><span class="tm-text-primary ms-2">%s</span>
-                                </div>
-                                <div class="mr-4 mb-2 d-flex flex-wrap">
-                                    <span class="tm-text-gray-dark">Status: </span><span class="tm-text-primary ms-2">%s</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div> 
-        ',
-        $this->user[0]['username'],
-        $this->user[0]['username'],
-        $this->user[0]['email'],
-        $this->user[0]['status'],
-        );
+        return $this->user;
     }
 
-    public function userProfileDetails($id)
+    public function otherProfileDetails($id)
     {
         $this->user = Application::$app->db->getUser($id);
         
@@ -225,36 +229,7 @@ class User extends Model
             throw new NotFoundException();
         }
 
-        echo sprintf('
-            <div class="container-fluid tm-container-content tm-mt-60">
-                <div class="row tm-mb-50">  
-                    <div class="col-xl-2"></div>          
-                    <div class="col-xl-8 col-lg-12 col-md-12 col-sm-12">
-                        <div class="tm-bg-gray tm-video-details">
-                            <div class="text-center mb-5">
-                                <h2 class="tm-text-primary">User: <i>%s</i></h2>
-                            </div>                    
-                            <div class="mb-4" id="Details">
-                                <div class="mr-4 mb-2">
-                                    <span class="tm-text-gray-dark">Username: </span><span class="tm-text-primary">%s</span>
-                                </div>
-                                <div class="mr-4 mb-2 d-flex flex-wrap">
-                                    <span class="tm-text-gray-dark">Email: </span><span class="tm-text-primary ms-2">%s</span>
-                                </div>
-                                <div class="mr-4 mb-2 d-flex flex-wrap">
-                                    <span class="tm-text-gray-dark">Status: </span><span class="tm-text-primary ms-2">%s</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div> 
-                </div>
-        ',
-        $this->user[0]['username'],
-        $this->user[0]['username'],
-        $this->user[0]['email'],
-        $this->user[0]['status']
-        );
-
+        return $this->user;
     }
 
     public function changeUserStatus($id, $status)
@@ -295,71 +270,6 @@ class User extends Model
     {
         $content = Application::$app->db->getModeratorLogging();
 
-        echo sprintf('
-            <div class="container-fluid">
-                <div class="container-table100 table-responsive"> 
-                    <div class="wrap-table100">
-                        <div class="table100 m-b-110">
-                            <div class="table100-head">
-                                <table>
-                                    <thead>
-                                        <tr class="row100 head">
-                                            <th class="cell100 column1">Moderator ID</th>
-                                            <th class="cell100 column2">Image ID</th>
-                                            <th class="cell100 column3">Gallery ID</th>
-                                            <th class="cell100 column4">Action</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-        
-                            <div class="table100-body js-pscroll">
-                                <table>
-                                    <tbody>
-            '
-        );
-
-        if(!empty($content))
-        {
-            for($i = 0; $i < count($content); $i++)
-            {
-                echo sprintf('
-                    <tr class="row100 body">
-                        <td class="cell100 column1">%s</td>
-                        <td class="cell100 column2">%s</td>
-                        <td class="cell100 column3">%s</td>
-                        <td class="cell100 column4">%s</td>
-                    </tr>
-                    ',
-                    $content[$i]['moderator_id'],
-                    empty($content[$i]['image_id']) ? 'empty' : $content[$i]['image_id'],
-                    empty($content[$i]['gallery_id']) ? 'empty' : $content[$i]['gallery_id'],
-                    $content[$i]['action']
-                );
-            }
-        }
-        else
-        {
-            echo sprintf('
-                <tr class="row100 body">
-                    <td class="cell100 column1">empty</td>
-                    <td class="cell100 column2">empty</td>
-                    <td class="cell100 column3">empty</td>
-                    <td class="cell100 column4">empty</td>
-                </tr>
-                ',
-            );
-
-        }
-
-        echo sprintf('
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        ');
+        return $content;
     }
 }

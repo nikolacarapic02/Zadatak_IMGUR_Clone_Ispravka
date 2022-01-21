@@ -2,6 +2,8 @@
 
 namespace app\core\lib;
 
+use DateTime;
+
 class Database
 {
     protected $pdo;
@@ -77,6 +79,21 @@ class Database
         }
     }
 
+    public function createTableSubscription()
+    {
+        $statement = $this->pdo->prepare("CREATE TABLE subscription(
+            user_id int(11) NOT NULL,
+            user_email varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+            first_name varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+            last_name varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+            plan enum('free','1 month', '6 months', '12 months') COLLATE utf8mb4_unicode_ci DEFAULT 'free',
+            status tinyint(1) NOT NULL DEFAULT '1',
+            plan_expire timestamp,
+            additional_note longtext COLLATE utf8mb4_unicode_ci NOT NULL
+        )");
+        $statement->execute();
+    }
+
     //End Database extensions
 
     //User
@@ -102,6 +119,28 @@ class Database
         $statement->execute();
 
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function subscribeToPlan($id, $attributes)
+    {
+        $email = $attributes['email'];
+        $first_name = $attributes['first_name'];
+        $last_name = $attributes['last_name'];
+        $plan = $attributes['plan'];
+        $note = $attributes['note'];
+        $date = new DateTime('now');
+        $date->modify('+6 month');
+        $expire = $date->format('Y-m-d H:i:s');
+
+        $statement = $this->pdo->prepare("INSERT INTO subscription(user_id, user_email, first_name, last_name, plan, plan_expire, status, additional_note) 
+        VALUES ('$id', '$email', '$first_name', '$last_name', '$plan', '$expire', 1, '$note')");
+        $statement->execute();
+    }
+
+    public function cancelSubscriptionForUser($user_id)
+    {
+        $statement = $this->pdo->prepare("UPDATE subscription SET status = 0 WHERE user_id = '$user_id'");
+        $statement->execute();
     }
 
     public function getUser($id)
@@ -178,6 +217,14 @@ class Database
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    public function getPlanInfo($id)
+    {
+        $statement = $this->pdo->prepare("SELECT plan, plan_expire, status FROM subscription WHERE user_id = $id");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
     //End User
 
     //Image
@@ -236,7 +283,7 @@ class Database
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function getAllImagesFromGallery($id)
+    public function getAllImagesKeysFromGallery($id)
     {
         $statement = $this->pdo->prepare("SELECT image_id FROM image_gallery WHERE gallery_id = '$id' ORDER BY image_id DESC");
         $statement->execute();
@@ -244,7 +291,7 @@ class Database
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function getImagesFromGallery($id)
+    public function getImagesKeysFromGallery($id)
     {
         $statement = $this->pdo->prepare("SELECT ig.image_id, ig.gallery_id
         FROM image_gallery ig

@@ -168,6 +168,18 @@ class Application
                 $this->errors['description'] = 'This field is required!';
             }
         }
+        else if($action === 'subscription')
+        {
+            if(empty($data['first_name']))
+            {
+                $this->errors['first_name'] = 'This field is required!';
+            }
+
+            if(empty($data['last_name']))
+            {
+                $this->errors['last_name'] = 'This field is required!';
+            }
+        }
     }
 
     public function hasErrors()

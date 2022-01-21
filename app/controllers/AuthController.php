@@ -10,30 +10,56 @@ use Twig\Environment;
 class AuthController extends Controller
 {
     protected Environment $view;
-    protected User $model;
+    protected User $user;
 
     public function __construct(Environment $view)
     {
         $this->view = $view;
-        $this->model = new User();
+        $this->user = new User();
     }
 
     public function index()
     {
         $value = Application::$app->request->getPath();
 
-        if($value == '/register')
+        if($value === '/register')
         {
             return $this->view->render($value . '.html', ['title' => 'Register Page']);
         }
-        else
+        else if($value === '/login')
         {
             return $this->view->render($value . '.html', ['title' => 'Login Page']);
         }
+        else
+        {
+            $plan = $_GET['plan'];
+
+            if($plan == 1)
+            {
+                $plan = '1 month';
+            }
+            else if($plan == 2)
+            {
+                $plan = '6 months';
+            }
+            else
+            {
+                $plan = '12 months';
+            }
+
+            return $this->view->render($value . '.html', [
+                'title' => 'Subscription',
+                'user' => $this->user->get(Application::$app->session->getSession('user')),
+                'plan' => $plan
+            ]);
+        }
+
     }
 
     public function register()
     {
+        $data = Application::$app->request->getData();
+
         Application::$app->validation('register');
         
         if(Application::$app->hasErrors())
@@ -46,7 +72,7 @@ class AuthController extends Controller
         }
         else
         {
-            $this->model->register($_POST);
+            $this->user->register($data);
             Application::$app->session->setSession('register', 'Thank you for registration');
             Application::$app->response->redirectToAnotherPage('/');
         }
@@ -54,9 +80,11 @@ class AuthController extends Controller
 
     public function login()
     {
+        $data = Application::$app->request->getData();
+
         Application::$app->validation('login');
 
-        $user = $this->model->login($_POST);
+        $user = $this->user->login($data);
 
         if(Application::$app->hasErrors())
         {
@@ -75,7 +103,45 @@ class AuthController extends Controller
 
     public function logout()
     {
-        $this->model->logout();
+        $this->user->logout();
         Application::$app->response->redirectToAnotherPage('/');
+    }
+
+    public function subscription()
+    {
+        $data = Application::$app->request->getData();
+
+        Application::$app->validation('subscription');
+
+        $plan = $_GET['plan'];
+
+        if($plan == 1)
+        {
+            $plan = '1 month';
+        }
+        else if($plan == 2)
+        {
+            $plan = '6 months';
+        }
+        else
+        {
+            $plan = '12 months';
+        }
+
+        if(Application::$app->hasErrors())
+        {
+            return $this->view->render('subscription.html', [
+                'errors' => Application::$app->getErrors(),
+                'title' => 'Subscription',
+                'values' => Application::$app->request->getData(),
+                'user' => $this->user->get(Application::$app->session->getSession('user')),
+                'plan' => $plan
+            ]);
+        }
+        else
+        {
+            $this->user->subscribe($data);
+            Application::$app->response->redirectToAnotherPage('/profile');
+        }
     }
 }

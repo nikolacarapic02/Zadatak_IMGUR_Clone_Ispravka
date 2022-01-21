@@ -1,0 +1,32 @@
+{% extends 'layout/auth.html' %}
+{% block content %}
+<h1>Subscrption</h1>
+<form action="" method="post">
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="text" name="email" class = "form-control" value="{{ user.0.email }}" readonly="true">
+    </div>
+    <div class="form-group row mb-3">
+        <div class="col-md-5 mb-3 mb-md-0">
+            <label class="form-label">First Name</label>
+            <input type="text" name="first_name" {% if errors.first_name == '' and values.first_name == '' %} class = "form-control" {% elseif errors.first_name == '' and values.first_name != '' %} class = "form-control is-valid" value = "{{ values.first_name }}" {% else %} class = "form-control is-invalid" {% endif %}>
+            {% if errors.first_name != '' %} <div class="invalid-feedback">{{ errors.first_name }}</div> {% endif %}
+        </div>
+        <div class="col-md-5">
+            <label class="form-label">Last Name</label>
+            <input type="text" name="last_name" {% if errors.last_name == '' and values.last_name == '' %} class = "form-control" {% elseif errors.last_name == '' and values.last_name != '' %} class = "form-control is-valid" value = "{{ values.last_name }}" {% else %} class = "form-control is-invalid" {% endif %}>
+            {% if errors.last_name != '' %} <div class="invalid-feedback">{{ errors.last_name }}</div> {% endif %}
+        </div>
+    </div>
+    <div class="mb-3 col-lg-2 col-md-3 col-xs-3">
+        <label class="form-label">Plan</label>
+        <input type="text" name="plan" class = "form-control" value="{{ plan }}" readonly="true">
+    </div>
+    <div class="form-group col-lg-6">
+        <label class="form-label">Additional note</label>
+        <textarea rows="8" name="note" class = "form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}

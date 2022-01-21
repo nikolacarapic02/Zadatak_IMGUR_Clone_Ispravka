@@ -1,0 +1,70 @@
+{% extends 'layout/main.html' %}
+{% block content %}
+<section class="pricing-table">
+  <div class="container">
+    <div class="block-heading">
+      <h1 class="heading">Our Plans</h1>
+    </div>
+    <div class="row justify-content-md-center mb-2">
+      <div class="col-md-5 col-lg-4">
+        <div class="item">
+          <div class="heading">
+            <h3>1 Month</h3>
+          </div>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <div class="features">
+            <h4><span class="feature">Duration</span> : <span class="value">1 month</span></h4>
+            <h4><span class="feature">Features</span> : <span class="value">20 photos / 1 month</span></h4>
+          </div>
+          <div class="price">
+            <h4>$10</h4>
+          </div>
+          <form action="{{ uri }}">
+            <button class="btn btn-block btn-primary editButton" type="submit" name="plan" value="1" {% if _app.isGuest() or plan.0.plan != 'free' %} disabled {% endif %}>BUY NOW</button>
+          </form>
+        </div>
+      </div>
+      <div class="col-md-5 col-lg-4">
+        <div class="item">
+          <div class="heading">
+            <h3>6 Months</h3>
+          </div>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <div class="features">
+            <h4><span class="feature">Duration</span> : <span class="value">6 Months</span></h4>
+            <h4><span class="feature">Features</span> : <span class="value">30 photos / 1 month</span></h4>
+          </div>
+          <div class="price">
+            <h4>$30</h4>
+          </div>
+          <form action="{{ uri }}">
+            <button class="btn btn-block btn-primary editButton" type="submit" name="plan" value="2" {% if _app.isGuest() or plan.0.plan != 'free' %} disabled {% endif %}>BUY NOW</button>
+          </form>
+        </div>
+      </div>
+      <div class="col-md-5 col-lg-4">
+        <div class="item">
+          <div class="heading">
+            <h3>12 Months</h3>
+          </div>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <div class="features">
+            <h4><span class="feature">Duration</span> : <span class="value">12 Months</span></h4>
+            <h4><span class="feature">Features</span> : <span class="value">50 photos / 1 month</span></h4>
+          </div>
+          <div class="price">
+            <h4>$50</h4>
+          </div>
+          <form action="{{ uri }}">
+            <button class="btn btn-block btn-primary editButton" type="submit" name="plan" value="3" {% if _app.isGuest() or plan.0.plan != 'free' %} disabled {% endif %}>BUY NOW</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="row justify-content-md-center mb-3 text-center">
+        {% if _app.isGuest() %} <p class="mb-0">You must have an account created to make a purchase</p> <span><a href="/login">Login</a> / <a href="/register">Register</a></span>{% endif %}
+        {% if not plan == null and plan.0.plan != 'free' %} <p class="mb-0">You already have the plan activated</p>{% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

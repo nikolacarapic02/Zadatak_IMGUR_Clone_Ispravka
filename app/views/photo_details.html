@@ -1,6 +1,37 @@
 {% extends 'layout/main.html' %}
 {% block content %}
-{{ imageContent.details(id) }}
+{% set userContent = user.get(imageContent.0.user_id) %}
+<div class="container-fluid tm-container-content tm-mt-60">
+    <div class="row tm-mb-50">            
+        <div class="col-xl-8 col-lg-7 col-md-6 col-sm-12">
+            <img src="uploads/{{ imageContent.0.file_name }}" alt="{{ imageContent.0.file_name }}" class="img-fluid photoDetail">
+        </div>
+        <div class="col-xl-4 col-lg-5 col-md-6 col-sm-12">
+            <div class="tm-bg-gray tm-video-details">
+                <div class="text-center mb-5">
+                    <a href="uploads/{{ imageContent.0.file_name }}" class="btn btn-primary tm-btn-big" download="%s">
+                        <span class="fas fa-download"></span>  Download
+                    </a>
+                </div>                    
+                <div class="mb-4">
+                    <div class="mr-4 mb-2" id="Details">
+                        <span class="tm-text-gray-dark">File name: </span><span class="tm-text-primary">{{ filename }}</span>
+                    </div>
+                    <div class="mr-4 mb-2" id="Details">
+                        <span class="tm-text-gray-dark">Format: </span><span class="tm-text-primary">{{ format }}</span>
+                    </div>
+                    <div class="mr-4 mb-2 d-flex flex-wrap" id="Details">
+                        <span class="tm-text-gray-dark">Posted by: </span><a href="/user_profile?id={{ userContent.0.id }}" class="tm-text"><span class="ms-2">{{ userContent.0.username }}</span></a>
+                    </div>
+                </div>
+                <div class="mb-4 text-center">
+                    <h3 class="tm-text-gray-dark mb-3">License</h3>
+                    <p>Free for both personal and commercial use. No need to pay anything. No need to make any attribution.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
 <div class="container-fluid tm-container-content"> 
     <div class="col-xl-8 col-lg-7 col-md-6 col-sm-12">
         {% if not _app.isGuest() %}
@@ -32,11 +63,11 @@
                         <div class="btn-group" data-toggle="buttons">
 
                             <label class="btn  form-check-label">
-                                <input type="checkbox"  autocomplete="off" name="nsfw" value="1" {% if imageContent.isNsfw(id) %} checked {% endif %}> <span class="checkText">NSFW</span>
+                                <input type="checkbox"  autocomplete="off" name="nsfw" value="1" {% if image.isNsfw(id) %} checked {% endif %}> <span class="checkText">NSFW</span>
                             </label>
 
                             <label class="btn form-check-label">
-                                <input type="checkbox"  autocomplete="off" name="hidden" value="1" {% if imageContent.isHidden(id) %} checked {% endif %}> <span class="checkText">Hidden</span>
+                                <input type="checkbox"  autocomplete="off" name="hidden" value="1" {% if image.isHidden(id) %} checked {% endif %}> <span class="checkText">Hidden</span>
                             </label>
 
                         </div>
@@ -59,11 +90,11 @@
                         <div class="btn-group" data-toggle="buttons">
 
                             <label class="btn  form-check-label">
-                                <input type="checkbox"  autocomplete="off" name="nsfw" value="1" {% if imageContent.isNsfw(id) %} checked {% endif %}> <span class="checkText">NSFW</span>
+                                <input type="checkbox"  autocomplete="off" name="nsfw" value="1" {% if image.isNsfw(id) %} checked {% endif %}> <span class="checkText">NSFW</span>
                             </label>
 
                             <label class="btn form-check-label">
-                                <input type="checkbox"  autocomplete="off" name="hidden" value="1" {% if imageContent.isHidden(id) %} checked {% endif %}> <span class="checkText">Hidden</span>
+                                <input type="checkbox"  autocomplete="off" name="hidden" value="1" {% if image.isHidden(id) %} checked {% endif %}> <span class="checkText">Hidden</span>
                             </label>
 
                         </div>
@@ -86,7 +117,29 @@
     </div>
     <div class="d-flex justify-content-center row">
         <div class="col-md-8">
-            {{ imageContent.getComments(id) }}
+            {% if commentContent is empty %}
+            <div class="d-flex flex-column comment-section">
+                <div class="bg-white p-2">
+                    <div class="mt-2">
+                        <p class="comment-text">There is no comments</p>
+                    </div>
+            </div>
+            {% else %}
+                {% for comment in commentContent %}
+                {% set userContent = user.get(comment.user_id) %}
+                <div class="d-flex flex-column comment-section">
+                    <div class="bg-white p-2">
+                        <div class="d-flex flex-row user-info"><img class="rounded-circle" src="assets/img/user.png" width="40" height="40">
+                            <div class="d-flex flex-column justify-content-start ml-2"><span class="d-block font-weight-bold name">{{ userContent.0.username }}</span><span class="date text-black-50">Shared publicly</span></div>
+                        </div>
+                        <div class="mt-2">
+                            <p class="comment-text">{{ comment.comment }}</p>
+                        </div>
+                    </div>
+                </div>
+                <hr class="underline underlineForm">
+                {% endfor %}
+            {% endif %}
             <div class="bg-light p-2">
                 <form action="" method = "post">
                     <div class="d-flex flex-row align-items-start"><img class="rounded-circle" src="assets/img/user.png" width="40">
@@ -99,8 +152,5 @@
             </div>
         </div>
     </div>
-</div>
-</div>
-</div>
 </div>
 {% endblock %}

@@ -23,4 +23,5 @@ $db->addNsfwToUser();
 $db->addStatusToUser();
 $db->dropTableDoctrine();
 $db->createTableModeratorLogging();
+$db->createTableSubscription();
 $db->optimizeDatabase();

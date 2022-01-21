@@ -1,7 +1,34 @@
 {% extends 'layout/main.html' %}
 {% block content %}
 <div class="container-fluid tm-container-content tm-mt-60">
-    {{ galleryContent.getUserGalleries(id) }}
+    <div class="row mb-2">
+        <h2 class="col-6 tm-text-primary">
+            Galleries by {{ userContent.0.username }}
+        </h2>
+    </div>
+    <hr class="underline">
+    <div class="row tm-mb-90 tm-gallery">
+        {% if galleryContent is empty %}
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3 mt-2">
+                <p class="comment-text">There is no galleries</p>
+            </div>  
+        {% endif %}
+        {% for gallery in galleryContent %}
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-5">
+            <figure class="effect-ming tm-video-item">
+                <img src="/assets/img/gallery.jpg" alt="Image" class="img-fluid">
+                <figcaption class="d-flex align-items-center justify-content-center">
+                    <h2>Details</h2>
+                    <a href="/gallery_details?id={{ gallery.id }}">View more</a>
+                </figcaption>                    
+            </figure>
+            <div class="d-flex justify-content-between tm-text-gray">
+                <span class="tm-text-gray-light">{{ gallery.name }}</span>
+                <a href="/user_profile?id={{ userContent.0.id }}">{{ userContent.0.username }}</a>
+            </div>
+        </div> 
+        {% endfor %}
+    </div>
     <div class="row tm-mb-90">
         {% if pageNum > 1 %}
             {% set pageNum = pageNum - 1 %}

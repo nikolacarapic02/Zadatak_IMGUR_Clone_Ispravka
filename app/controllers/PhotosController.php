@@ -14,21 +14,25 @@ class PhotosController extends Controller
     protected Environment $view;
     protected Image $images;
     protected User $user;
+    protected string $uri;
 
     public function __construct(Environment $view)
     {
         $this->view = $view;
         $this->images = new Image();
         $this->user = new User();
+        $this->uri = Application::$app->request->getPath();
     }
 
     public function index()
     {
+        $imageContent = $this->images->get();
         $this->images->restrictPage($this->images);
 
         return $this->view->render('photos.html', [
             'title' => 'Photos', 
-            'imageContent' => $this->images,
+            'imageContent' => $imageContent,
+            'user' => $this->user,
             'numOfPages' => $this->images->numOfPages($this->images),
             'page' => $this->images->getPage(),
             'pageNumPre' => $this->images->getPage() - 1,
@@ -40,7 +44,10 @@ class PhotosController extends Controller
     public function details($id)
     {
         $data = Application::$app->request->getData();
-
+        $imageContent = $this->images->details($id);
+        $commentContent = $this->images->getComments($id);
+        $uriParametars = '?'.$_SERVER['QUERY_STRING'];
+    
         if(!key_exists('id', $_GET) || !is_numeric($id) || $id <= 0)
         {
             throw new NotFoundException();
@@ -49,6 +56,7 @@ class PhotosController extends Controller
         if(!empty($data['comment']))
         {
             $this->images->createComment($data['comment'], $id);
+            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
         }
 
         if(!Application::$app->isGuest())
@@ -60,6 +68,7 @@ class PhotosController extends Controller
                     if(!empty($data['new_name']) && !empty($data['slug']))
                     {
                         $this->images->editImage($id, $data['new_name'], $data['slug']);
+                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
                     }
                     else
                     {
@@ -82,6 +91,7 @@ class PhotosController extends Controller
                         }
                         
                         $this->images->editImage($id, $newName, $slug);
+                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
                     }
 
                     if(!empty($data['delete']))
@@ -101,23 +111,27 @@ class PhotosController extends Controller
                         if(!empty($data['nsfw']) && !empty($data['hidden']))
                         {
                             $this->images->editImageByModerator($data['nsfw'], $data['hidden'], $id);
+                            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
                         }
                         else
                         {
                             if(!empty($data['nsfw']))
                             {
                                 $this->images->editImageByModerator($data['nsfw'], '', $id);
+                                Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
                             }
                         
                             if(!empty($data['hidden']))
                             {
                                 $this->images->editImageByModerator('', $data['hidden'], $id);
+                                Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
                             }
                         }
                     }
                     else
                     {
                         $this->images->editImageByModerator('', '', $id);
+                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
                     }
                 }
             }
@@ -131,6 +145,7 @@ class PhotosController extends Controller
                         if(!empty($data['file_name']) && !empty($data['slug']) && !empty($data['nsfw']) && !empty($data['hidden']))
                         {
                             $this->images->editImageByAdmin($data['file_name'], $data['slug'], $data['nsfw'], $data['hidden'], $id);
+                            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
                         }
                         else
                         {
@@ -171,11 +186,13 @@ class PhotosController extends Controller
                             }
                         
                             $this->images->editImageByAdmin($fileName, $slug, $nsfw, $hidden, $id);
+                            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
                         }
                     }
                     else
                     {
                         $this->images->editImageByAdmin('', '', '', '', $id);
+                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
                     }
                 }
             }
@@ -184,13 +201,20 @@ class PhotosController extends Controller
         return $this->view->render('photo_details.html', [
             'title' => 'Photo Details',
             'id' => $id,
-            'imageContent' => $this->images,
-            'user' => $this->user
+            'image' => $this->images,
+            'imageContent' => $imageContent,
+            'user' => $this->user,
+            'filename' => preg_replace('/\\.[^.\\s]{3,4}$/', '', $imageContent[0]['file_name']),
+            'format' => strtoupper(substr($imageContent[0]['file_name'], strpos($imageContent[0]['file_name'], ".") + 1)),
+            'commentContent' => $commentContent
         ]);
     }
 
     public function userPhotos($id)
     {
+        $imageContent = $this->images->getUserImages($id);
+        $userContent = $this->user->get($id);
+
         if(!key_exists('id', $_GET) || !is_numeric($id))
         {
             throw new NotFoundException();
@@ -202,7 +226,8 @@ class PhotosController extends Controller
 
         return $this->view->render('user_photos.html', [
             'title' => ucwords($userData[0]['username']) . ' Photos',
-            'imageContent' => $this->images,
+            'imageContent' => $imageContent,
+            'userContent' => $userContent,
             'numOfPages' => $this->images->numOfUserPages($this->images, $id),
             'page' => $this->images->getPage(),
             'pageNumPre' => $this->images->getPage() - 1,

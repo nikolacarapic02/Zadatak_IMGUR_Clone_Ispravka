@@ -11,6 +11,7 @@ use app\controllers\PhotosController;
 use app\controllers\ProfileController;
 use app\controllers\GalleriesController;
 use app\controllers\ModeratorLoggingController;
+use app\controllers\PlanController;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -116,6 +117,16 @@ $app->router->get('/moderator_logging', function() use ($twig){
     echo $controller->index();
 });
 
+$app->router->get('/plan_pricing', function() use ($twig){
+    $controller = new PlanController($twig);
+    echo $controller->index();
+});
+
+$app->router->get('/subscription', function() use ($twig){
+    $controller = new AuthController($twig);
+    echo $controller->index();
+});
+
 //POST
 
 $app->router->post('/login', function() use ($twig){
@@ -131,6 +142,7 @@ $app->router->post('/register', function() use ($twig){
 $app->router->post('/profile', function() use ($twig){
     $controller = new ProfileController($twig);
     echo $controller->create();
+    echo $controller->cancel();
 });
 
 $app->router->post('/user_profile', function() use ($twig){
@@ -149,6 +161,11 @@ $app->router->post('/gallery_details', function() use ($twig){
     $controller = new GalleriesController($twig);
     key_exists('id', $_GET) ? $id = $_GET['id'] : $id = null;
     echo $controller->details($id);
+});
+
+$app->router->post('/subscription', function() use ($twig){
+    $controller = new AuthController($twig);
+    echo $controller->subscription();
 });
 
 try

@@ -1,4 +1,47 @@
 {% extends 'layout/main.html' %}
 {% block content %}
-{{ userContent.getModeratorLogging() }}
+<div class="container-fluid">
+    <div class="container-table100 table-responsive"> 
+        <div class="wrap-table100">
+            <div class="table100 m-b-110">
+                <div class="table100-head">
+                    <table>
+                        <thead>
+                            <tr class="row100 head">
+                                <th class="cell100 column1">Moderator ID</th>
+                                <th class="cell100 column2">Image ID</th>
+                                <th class="cell100 column3">Gallery ID</th>
+                                <th class="cell100 column4">Action</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
+                <div class="table100-body js-pscroll">
+                    <table>
+                        <tbody>
+                            {% if content is empty %}
+                                <tr class="row100 body">
+                                    <td class="cell100 column1">empty</td>
+                                    <td class="cell100 column2">empty</td>
+                                    <td class="cell100 column3">empty</td>
+                                    <td class="cell100 column4">empty</td>
+                                </tr>
+                            {% else %}
+                                {% for value in content %}
+                                <tr class="row100 body">
+                                    <td class="cell100 column1">{{ value.moderator_id }}</td>
+                                    <td class="cell100 column2">{% if value.image_id is empty %} empty {% else %} {{ value.image_id }} {% endif %}</td>
+                                    <td class="cell100 column3">{% if value.gallery_id is empty %} empty {% else %} {{ value.gallery_id }} {% endif %}</td>
+                                    <td class="cell100 column4">{{ value.action }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
