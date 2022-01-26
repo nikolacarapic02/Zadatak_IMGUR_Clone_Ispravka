@@ -170,14 +170,51 @@ class Application
         }
         else if($action === 'subscription')
         {
-            if(empty($data['first_name']))
+            if($data['payment_methods'] === 'Select a payment method')
             {
-                $this->errors['first_name'] = 'This field is required!';
+                $this->errors['payment_methods'] = 'You must select a payment method!';
             }
 
-            if(empty($data['last_name']))
+            if($data['payment_methods'] === 'credit')
             {
-                $this->errors['last_name'] = 'This field is required!';
+                if(empty($data['first_name']))
+                {
+                    $this->errors['first_name'] = 'This field is required!';
+                }
+
+                if(empty($data['last_name']))
+                {
+                    $this->errors['last_name'] = 'This field is required!';
+                }
+
+                if(empty($data['card_num']))
+                {
+                    $this->errors['card_num'] = 'This field is required!';
+                }
+            }
+
+            if($data['payment_methods'] === 'paypal')
+            {
+                if(empty($data['paypal_email']))
+                {
+                    $this->errors['paypal_email'] = 'This field is required!';
+                }
+                else if(!filter_var($data['paypal_email'], FILTER_VALIDATE_EMAIL))
+                {
+                    $this->errors['paypal_email'] =  'Email format must be correct!';
+                }
+            }
+
+            if($data['payment_methods'] === 'crypto')
+            {
+                if(empty($data['crypto_email']))
+                {
+                    $this->errors['crypto_email'] = 'This field is required!';
+                }
+                else if(!filter_var($data['crypto_email'], FILTER_VALIDATE_EMAIL))
+                {
+                    $this->errors['crypto_email'] =  'Email format must be correct!';
+                }
             }
         }
     }

@@ -4,7 +4,7 @@
     <div class="container-fluid tm-container-content tm-mt-60">
         <div class="row tm-mb-50">            
             <div class="col-xl-5 col-lg-5 col-md-6 col-sm-12 mb-3">
-                <div class="tm-bg-gray tm-video-details">
+                <div class="tm-bg-gray tm-video-details rounded-3">
                     <div class="text-center mb-5">
                         <h2 class="tm-text-primary">Hello <i>{{ userContent.0.username }}</i></h2>
                     </div>                    
@@ -21,18 +21,29 @@
                         <div class="mr-4 mb-2 d-flex flex-wrap">
                             <span class="tm-text-gray-dark">Plan: </span><span class="tm-text-primary ms-2">{{ plan.0.plan }}</span>
                         </div>
-                        <div class="mr-4 mb-2 d-flex flex-wrap">
-                            <span class="tm-text-gray-dark">Expire date: </span><span class="tm-text-primary ms-2">{{ planExpire }}</span>
-                        </div>
-                        <div class="mr-4 mb-2 d-flex flex-wrap">
-                            <span class="tm-text-gray-dark">Plan status: </span><span class="tm-text-primary ms-2">{{ planStatus }}</span>
-                        </div>
+                        {% if plan.0.plan != 'free' %}
+                            <div class="mr-4 mb-2 d-flex flex-wrap">
+                                <span class="tm-text-gray-dark">Expire date: </span><span class="tm-text-primary ms-2">{{ planExpire }}</span>
+                            </div>
+                            <div class="mr-4 mb-2 d-flex flex-wrap">
+                                <span class="tm-text-gray-dark">Plan status: </span><span class="tm-text-primary ms-2">{{ plan.0.status }}</span>
+                            </div>
+                        {% endif %}
                     </div>
-                    <div class="text-center">
-                        <form action="" method="post">
-                            <button type="submit" name="cancel" class="btn btn-primary editButton" {% if plan.0.plan == 'free' or plan.0.status == 0 %} disabled {% endif %}>Cancel Plan</button>
-                        </form>
-                    </div>
+                    {% if plan.0.plan != 'free' %}
+                        <div class="text-center">
+                            <form action="" method="post">
+                                <button type="submit" name="cancel" class="btn btn-primary editButton" {% if plan.0.plan == 'free' or plan.0.cancel == 1 %} disabled {% endif %}>Cancel Plan</button>
+                                {% if plan.0.cancel == 1 %}<p>You canceled the plan</p>{% endif %}
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="text-center">
+                            <form action="" method="post">
+                                <button type="submit" name="buy" class="btn btn-primary editButton" >Buy Plan</button>
+                            </form>
+                        </div>
+                    {% endif %}
                 </div>
             </div> 
             <div class="col-xl-7 col-lg-7 col-md-6 col-sm-12 mt-3">
@@ -63,8 +74,19 @@
                                 <input type="file" name="file" class="btn" id="exampleInputPassword1" placeholder="Password">
                                 {% if errors.file != '' %} <div class="text-danger">{{ errors.file }} </div> {% endif %}
                             </div>
-                            <div class="form-group tm-text-right">
-                                <button type="submit" name="submitImage" class="btn btn-primary">Upload</button>
+                            <div class="form-group tm-text-right text-center">
+                                <button type="submit" name="submitImage" class="btn btn-primary createButton {% if restriction == 1 %} disabled {% endif %}">Upload</button>
+                                {% if restriction == 1 %}
+                                    {% if plan.0.plan == 'free' %} 
+                                        <p class="mb-0">With a free plan you can upload up to 5 images monthly</p>
+                                    {% elseif plan.0.plan == '1 month' %}
+                                        <p class="mb-0">With this plan you can upload up to 20 images monthly</p>
+                                    {% elseif plan.0.plan == '6 months' %}
+                                        <p class="mb-0">With this plan you can upload up to 30 images monthly</p>
+                                    {% elseif plan.0.plan == '12 months' %}
+                                        <p class="mb-0">With this plan you can upload up to 50 images monthly</p>
+                                    {% endif %}
+                                {% endif %}
                             </div>
                         </form>
                     </div>
@@ -83,8 +105,8 @@
                                 <textarea rows="8" name="description" {% if errors.description == '' and values.description == '' %} class = "form-control" {% elseif errors.description == '' and values.description != '' %} class = "form-control is-valid" {% else %} class = "form-control is-invalid" {% endif %} placeholder="Description">{% if values.description != '' and errors.description == '' %} {{ values.description }} {% endif %}</textarea>
                                 {% if errors.description != '' %} <div class="invalid-feedback">{{ errors.description }}</div> {% endif %}
                             </div>
-                            <div class="form-group tm-text-right">
-                                <button type="submit" name="submitGallery" class="btn btn-primary">Create</button>
+                            <div class="form-group tm-text-right text-center">
+                                <button type="submit" name="submitGallery" class="btn btn-primary createButton">Create</button>
                             </div>
                         </form>
                     </div>
@@ -162,5 +184,51 @@
             </div>            
         </div>  
     </div> 
+    <div class="row mb-4">
+        <h2 class="tm-text-primary">
+            Subscription history
+        </h2>
+    </div>
+    <hr class="underline">
+    <div class="container-fluid">
+        {% if allPlans is empty%}
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-5 mt-2">
+                <p class="comment-text">There is no data</p>
+            </div>   
+        {% else %}
+            <div class="container-tableSub table-responsive mb-5"> 
+                <div class="wrap-table100">
+                    <div class="table100">
+                        <div class="table100-head">
+                            <table>
+                                <thead>
+                                    <tr class="rowSub head">
+                                        <th class="cellSub column-sub-1">Ord.</th>
+                                        <th class="cellSub column-sub-2">Plan Name</th>
+                                        <th class="cellSub column-sub-3">Buy Date</th>
+                                        <th class="cellSub column-sub-4">Expire Date</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                        <div class="table100-body js-pscroll">
+                            <table>
+                                <tbody>
+                                    {% for value in allPlans %}
+                                    <tr class="rowSub body">
+                                        <td class="cellSub column-sub-1">{{ loop.index }}</td>
+                                        <td class="cellSub column-sub-2">{{ value.plan }}</td>
+                                        <td class="cellSub column-sub-3">{{ value.buy_time }}</td>
+                                        <td class="cellSub column-sub-4">{{ value.expire_time }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

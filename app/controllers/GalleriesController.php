@@ -26,8 +26,8 @@ class GalleriesController extends Controller
 
     public function index()
     {
-        $galleryContent = $this->galleries->get();
         $this->galleries->restrictPage($this->galleries);
+        $galleryContent = $this->galleries->get();
 
         return $this->view->render('galleries.html', [
             'title' => 'Galleries', 
@@ -43,21 +43,16 @@ class GalleriesController extends Controller
 
     public function details($id)
     {
-        $data = Application::$app->request->getData();
-        $galleryContent = $this->galleries->details($id);
-        $imageContent = $this->galleries->getImagesForGallery($id);
-        $commentContent = $this->galleries->getComments($id);
-        $uriParametars = '?'.$_SERVER['QUERY_STRING'];
-
         if(!key_exists('id', $_GET) || !is_numeric($id) || $id <= 0)
         {
             throw new NotFoundException();
         }
 
+        $data = Application::$app->request->getData();
+
         if(!empty($data['comment']))
         {
             $this->galleries->createComment($data['comment'], $id);
-            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
         }
 
         if(!Application::$app->isGuest())
@@ -69,7 +64,7 @@ class GalleriesController extends Controller
                     if(!empty($data['new_name']) && !empty($data['slug']) && !empty($data['description']))
                     {
                         $this->galleries->editGallery($id, $data['new_name'], $data['slug'], $data['description']);
-                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+        
                     }
                     else
                     {
@@ -101,7 +96,7 @@ class GalleriesController extends Controller
                         }
 
                         $this->galleries->editGallery($id, $newName, $slug, $description);
-                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+        
                     }
 
                     if(!empty($data['delete']))
@@ -121,27 +116,27 @@ class GalleriesController extends Controller
                         if(!empty($data['nsfw']) && !empty($data['hidden']))
                         {
                             $this->galleries->editGalleryByModerator($data['nsfw'], $data['hidden'], $id);
-                            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+            
                         }
                         else
                         {
                             if(!empty($data['nsfw']))
                             {
                                 $this->galleries->editGalleryByModerator($data['nsfw'], '', $id);
-                                Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+                
                             }
                         
                             if(!empty($data['hidden']))
                             {
                                 $this->galleries->editGalleryByModerator('', $data['hidden'], $id);
-                                Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+                
                             }
                         }
                     }
                     else
                     {
                         $this->galleries->editGalleryByModerator('', '', $id);
-                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+        
                     }
                 }
             }
@@ -155,7 +150,7 @@ class GalleriesController extends Controller
                         if(!empty($data['name']) && !empty($data['slug']) && !empty($data['nsfw']) && !empty($data['hidden']) && !empty($data['description']))
                         {
                             $this->galleries->editGalleryByAdmin($data['name'], $data['slug'], $data['nsfw'], $data['hidden'], $data['description'], $id);
-                            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+            
                         }
                         else
                         {
@@ -205,18 +200,21 @@ class GalleriesController extends Controller
                             }
                         
                             $this->galleries->editGalleryByAdmin($name, $slug, $nsfw, $hidden, $description, $id);
-                            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+            
                         }
                     }
                     else
                     {
                         $this->galleries->editGalleryByAdmin('', '', '', '', '', $id);
-                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+        
                     }
                 }
             }
         }
 
+        $galleryContent = $this->galleries->details($id);
+        $imageContent = $this->galleries->getImagesForGallery($id);
+        $commentContent = $this->galleries->getComments($id);
 
         return $this->view->render('gallery_details.html', [
             'title' => 'Gallery Details', 
@@ -231,20 +229,19 @@ class GalleriesController extends Controller
 
     public function userGalleries($id)
     {
-        $galleryContent = $this->galleries->getUserGalleries($id);
-        $userContent = $this->user->get($id);
-
         if(!key_exists('id', $_GET) || !is_numeric($id))
         {
             throw new NotFoundException();
         }
-        
+
         $this->galleries->restrictUserPage($this->galleries, $id);
 
+        $galleryContent = $this->galleries->getUserGalleries($id);
+        $userContent = $this->user->get($id);
         $userData = $this->user->get($id);
 
         return $this->view->render('user_galleries.html', [
-            'title' => ucwords($userData[0]['username']) . ' Galleries',
+            'title' => 'Galleries of ' . ucwords($userData[0]['username']),
             'galleryContent' => $galleryContent,
             'numOfPages' => $this->galleries->numOfUserPages($this->galleries, $id),
             'page' => $this->galleries->getPage(),

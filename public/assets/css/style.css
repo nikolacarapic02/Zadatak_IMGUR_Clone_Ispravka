@@ -65,13 +65,17 @@ a:disabled
 
 .moreButton
 {
-    width: 100%;;
+    width: 100%;
 } 
-
 
 .editButton
 {
-    width: 100%;;
+    width: 100%;
+}
+
+.createButton
+{
+    width: 99%;
 }
 
 .navbar-nav > li > .dropdown > .btn-primary:focus
@@ -361,7 +365,46 @@ figure.effect-ming:hover img { opacity: 0.4; }
     padding: 40px;
 }
 
+.container-tableSub
+{
+    width: 100%;
+    background: #fff;
+    min-height: 25vh;
+  
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 33px 30px;
+}
+   
+.column-sub-1 
+{
+    width: 15%;
+    padding-left: 20px;
+}
+  
+.column-sub-2
+{
+    width: 28%;
+}
+  
+.column-sub-3
+{
+    width: 28%;
+}
+
+.column-sub-4
+{
+    width: 28%;
+} 
+
 /* About */
+
 .tm-row-1640 { max-width: 1640px; }
 
 .tm-about-2-col { max-width: 716px; }
@@ -473,7 +516,7 @@ select:not([multiple]) {
 .container-table100 
 {
     width: 100%;
-    min-height: 100vh;
+    min-height: 70vh;
     background: #fff;
   
     display: -webkit-box;

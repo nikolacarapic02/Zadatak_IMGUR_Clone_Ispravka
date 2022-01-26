@@ -24,4 +24,6 @@ $db->addStatusToUser();
 $db->dropTableDoctrine();
 $db->createTableModeratorLogging();
 $db->createTableSubscription();
+$db->createTablePayment();
+$db->addCreateTimeToImage();
 $db->optimizeDatabase();

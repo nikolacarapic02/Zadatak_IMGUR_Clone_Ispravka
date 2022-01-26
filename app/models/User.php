@@ -2,20 +2,23 @@
 
 namespace app\models;
 
-use app\core\Application;
-use app\core\lib\interfaces\Subscription;
+use DateTime;
 use app\core\lib\Model;
+use app\core\Application;
+use app\core\lib\classes\AmericanExpress;
+use app\core\lib\classes\Crypto;
+use app\core\lib\classes\MasterCard;
+use app\core\lib\classes\PayPal;
+use app\core\lib\classes\VisaCard;
 use app\exceptions\NotFoundException;
+use app\core\lib\interfaces\SubscriptionInterface;
+use app\core\lib\PaymentAdapter;
 
-class User extends Model implements Subscription
+class User extends Model implements SubscriptionInterface
 {
     private array $user = [];
     private static $model;
-    private array $plan = [array( 
-        'plan' => 'free',
-        'plan_expire' => 'none',
-        'status' => '1'
-    )];
+    private array $plan = [];
     
     public function __construct()
     {
@@ -41,6 +44,35 @@ class User extends Model implements Subscription
 
     public function subscribe(array $attributes)
     {
+        if($attributes['payment_methods'] === 'paypal')
+        {
+            $paypal = new PayPal();
+            $paypal->makePayment();
+        }
+        elseif($attributes['payment_methods'] === 'crypto')
+        {
+            $crypto = new Crypto();
+            $crypto->makePayment();
+        }
+        else
+        {
+            if($attributes['card_type'] === 1)
+            {
+                $card = new VisaCard();
+            }
+            elseif($attributes['card_type'] === 2)
+            {
+                $card = new MasterCard();
+            }
+            else
+            {
+                $card = new AmericanExpress();
+            }
+
+            $payment = new PaymentAdapter($card, $attributes);
+            $payment->makePayment();
+        }
+
         Application::$app->db->subscribeToPlan(Application::$app->session->getSession('user'), $attributes);
     }
 
@@ -55,11 +87,114 @@ class User extends Model implements Subscription
         
         if(!empty($value))
         {
-            return $value;
+            if(date("Y-m-d H:i:s") > date("Y-m-d H:i:s", strtotime($value[0]['expire_time'])))
+            {
+                $this->changePlanStatus($user_id, 'inactive');
+            }
+        }
+
+        $newValue = Application::$app->db->getPlanInfo($user_id);
+ 
+        if(!empty($newValue))
+        {
+            if($newValue[0]['status'] === 'active')
+            {
+                $this->plan = $newValue;
+
+                return $this->plan;
+            }
+            else
+            {
+                $this->plan = [array(
+                    'plan' => 'free'
+                )];
+                
+                return $this->plan;
+            }
         }
         else
         {
+            $this->plan = [array(
+                'plan' => 'free'
+            )];
+            
             return $this->plan;
+        }
+    }
+
+    public function getAllPlans($user_id)
+    {
+        return Application::$app->db->getAllPlansInfo($user_id);
+    }
+
+    public function changePlanStatus($user_id, $status)
+    {
+        Application::$app->db->setPlanStatusToInactive($user_id, $status);
+    }
+
+    public function userLastExpiredPlan($user_id)
+    {
+        return Application::$app->db->checkLastExpiredPlan($user_id);
+    }
+
+    public function checkSubscriptionRights($user_id)
+    {
+        if($this->plan[0]['plan'] === 'free')
+        {
+            $value = $this->userLastExpiredPlan($user_id);
+
+            if(!is_null($value[0]['expire_time']))
+            {
+                $first_date = $value[0]['expire_time'];
+                $last_date = date('Y-m-d H:i:s', strtotime('+1 month', strtotime($first_date)));
+                $countOfImages = Application::$app->db->getCountOfCreatedImages($user_id, $first_date, $last_date);
+
+                if($countOfImages[0]['num'] >= 5)
+                {
+                    return 1;
+                }
+            }
+            else
+            {
+                $first_date = date('Y-m-01 H:i:s');
+                $date = new DateTime('now');
+                $date->modify('last day of this month');
+                $last_date = $date->format('Y-m-d H:i:s');
+                $countOfImages = Application::$app->db->getCountOfCreatedImages($user_id, $first_date, $last_date);
+
+                if($countOfImages[0]['num'] >= 5)
+                {
+                    return 1;
+                }
+            }
+        }
+        else
+        {
+            $first_date = $this->plan[0]['buy_time'];
+            $last_date = date('Y-m-d H:i:s', strtotime('+1 month', strtotime($first_date)));
+            $countOfImages = Application::$app->db->getCountOfCreatedImages($user_id, $first_date, $last_date);
+
+            if($this->plan[0]['plan'] == '1 month')
+            {
+                if($countOfImages[0]['num'] >= 20)
+                {
+                    return 1;
+                }
+            }
+            elseif($this->plan[0]['plan'] == '6 months')
+            {
+                if($countOfImages[0]['num'] >= 30)
+                {
+                    return 1;
+                }
+            }
+            elseif($this->plan[0]['plan'] == '12 months')
+            {
+                if($countOfImages[0]['num'] >= 50)
+                {
+                    return 1;
+                }
+            }
         }
     }
 

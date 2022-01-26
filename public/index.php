@@ -143,6 +143,7 @@ $app->router->post('/profile', function() use ($twig){
     $controller = new ProfileController($twig);
     echo $controller->create();
     echo $controller->cancel();
+    echo $controller->buy();
 });
 
 $app->router->post('/user_profile', function() use ($twig){

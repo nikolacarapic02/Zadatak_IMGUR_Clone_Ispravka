@@ -26,8 +26,8 @@ class PhotosController extends Controller
 
     public function index()
     {
-        $imageContent = $this->images->get();
         $this->images->restrictPage($this->images);
+        $imageContent = $this->images->get();
 
         return $this->view->render('photos.html', [
             'title' => 'Photos', 
@@ -43,121 +43,41 @@ class PhotosController extends Controller
 
     public function details($id)
     {
-        $data = Application::$app->request->getData();
-        $imageContent = $this->images->details($id);
-        $commentContent = $this->images->getComments($id);
-        $uriParametars = '?'.$_SERVER['QUERY_STRING'];
-    
         if(!key_exists('id', $_GET) || !is_numeric($id) || $id <= 0)
         {
             throw new NotFoundException();
         }
 
-        if(!empty($data['comment']))
-        {
-            $this->images->createComment($data['comment'], $id);
-            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
-        }
+        $data = Application::$app->request->getData();
 
-        if(!Application::$app->isGuest())
+        if(!empty($data))
         {
-            if($this->user->isYourImage($id))
+            if(!empty($data['comment']))
             {
-                if(!empty($data))
-                {
-                    if(!empty($data['new_name']) && !empty($data['slug']))
-                    {
-                        $this->images->editImage($id, $data['new_name'], $data['slug']);
-                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
-                    }
-                    else
-                    {
-                        if(!empty($data['new_name']))
-                        {
-                            $newName = $data['new_name'];
-                        }
-                        else
-                        {
-                            $newName = '';
-                        }
-
-                        if(!empty($data['slug']))
-                        {
-                            $slug = $data['slug'];
-                        }
-                        else
-                        {
-                            $slug = '';
-                        }
-                        
-                        $this->images->editImage($id, $newName, $slug);
-                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
-                    }
-
-                    if(!empty($data['delete']))
-                    {
-                        $this->images->deleteImage($id);
-                        Application::$app->response->redirectToAnotherPage('/');
-                    }
-                }
+                $this->images->createComment($data['comment'], $id);
             }
 
-            if($this->user->isModerator(Application::$app->session->getSession('user')) && !$this->user->isYourImage($id))
+            if(!Application::$app->isGuest())
             {
-                if(isset($data['submit']))
+                if($this->user->isYourImage($id))
                 {
-                    if(key_exists('nsfw', $data) || key_exists('hidden', $data))
+                    if(!empty($data))
                     {
-                        if(!empty($data['nsfw']) && !empty($data['hidden']))
+                        if(!empty($data['new_name']) && !empty($data['slug']))
                         {
-                            $this->images->editImageByModerator($data['nsfw'], $data['hidden'], $id);
-                            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+                            $this->images->editImage($id, $data['new_name'], $data['slug']);
                         }
                         else
                         {
-                            if(!empty($data['nsfw']))
+                            if(!empty($data['new_name']))
                             {
-                                $this->images->editImageByModerator($data['nsfw'], '', $id);
-                                Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
-                            }
-                        
-                            if(!empty($data['hidden']))
-                            {
-                                $this->images->editImageByModerator('', $data['hidden'], $id);
-                                Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        $this->images->editImageByModerator('', '', $id);
-                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
-                    }
-                }
-            }
-
-            if($this->user->isAdmin(Application::$app->session->getSession('user')) && !$this->user->isYourImage($id))
-            {
-                if(isset($data['submit']))
-                {
-                    if(key_exists('file_name', $data) || key_exists('slug', $data) || key_exists('nsfw', $data) || key_exists('hidden', $data))
-                    {
-                        if(!empty($data['file_name']) && !empty($data['slug']) && !empty($data['nsfw']) && !empty($data['hidden']))
-                        {
-                            $this->images->editImageByAdmin($data['file_name'], $data['slug'], $data['nsfw'], $data['hidden'], $id);
-                            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
-                        }
-                        else
-                        {
-                            if(!empty($data['file_name']))
-                            {
-                                $fileName = $data['file_name'];
+                                $newName = $data['new_name'];
                             }
                             else
                             {
-                                $fileName = '';
+                                $newName = '';
                             }
-                        
+
                             if(!empty($data['slug']))
                             {
                                 $slug = $data['slug'];
@@ -166,38 +86,111 @@ class PhotosController extends Controller
                             {
                                 $slug = '';
                             }
-                        
-                            if(!empty($data['nsfw']))
-                            {
-                                $nsfw = $data['nsfw'];
-                            }
-                            else
-                            {
-                                $nsfw = '';
-                            }
-                        
-                            if(!empty($data['hidden']))
-                            {
-                                $hidden = $data['hidden'];
-                            }
-                            else
-                            {
-                                $hidden = '';
-                            }
-                        
-                            $this->images->editImageByAdmin($fileName, $slug, $nsfw, $hidden, $id);
-                            Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+                            
+                            $this->images->editImage($id, $newName, $slug);
+                        }
+
+                        if(!empty($data['delete']))
+                        {
+                            $this->images->deleteImage($id);
+                            Application::$app->response->redirectToAnotherPage('/');
                         }
                     }
-                    else
+                }
+
+                if($this->user->isModerator(Application::$app->session->getSession('user')) && !$this->user->isYourImage($id))
+                {
+                    if(isset($data['submit']))
                     {
-                        $this->images->editImageByAdmin('', '', '', '', $id);
-                        Application::$app->response->redirectToAnotherPage($this->uri . $uriParametars);
+                        if(key_exists('nsfw', $data) || key_exists('hidden', $data))
+                        {
+                            if(!empty($data['nsfw']) && !empty($data['hidden']))
+                            {
+                                $this->images->editImageByModerator($data['nsfw'], $data['hidden'], $id);
+                            }
+                            else
+                            {
+                                if(!empty($data['nsfw']))
+                                {
+                                    $this->images->editImageByModerator($data['nsfw'], '', $id);
+                                }
+                            
+                                if(!empty($data['hidden']))
+                                {
+                                    $this->images->editImageByModerator('', $data['hidden'], $id);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            $this->images->editImageByModerator('', '', $id);
+                        }
+                    }
+                }
+
+                if($this->user->isAdmin(Application::$app->session->getSession('user')) && !$this->user->isYourImage($id))
+                {
+                    if(isset($data['submit']))
+                    {
+                        if(key_exists('file_name', $data) || key_exists('slug', $data) || key_exists('nsfw', $data) || key_exists('hidden', $data))
+                        {
+                            if(!empty($data['file_name']) && !empty($data['slug']) && !empty($data['nsfw']) && !empty($data['hidden']))
+                            {
+                                $this->images->editImageByAdmin($data['file_name'], $data['slug'], $data['nsfw'], $data['hidden'], $id);
+                            }
+                            else
+                            {
+                                if(!empty($data['file_name']))
+                                {
+                                    $fileName = $data['file_name'];
+                                }
+                                else
+                                {
+                                    $fileName = '';
+                                }
+                            
+                                if(!empty($data['slug']))
+                                {
+                                    $slug = $data['slug'];
+                                }
+                                else
+                                {
+                                    $slug = '';
+                                }
+                            
+                                if(!empty($data['nsfw']))
+                                {
+                                    $nsfw = $data['nsfw'];
+                                }
+                                else
+                                {
+                                    $nsfw = '';
+                                }
+                            
+                                if(!empty($data['hidden']))
+                                {
+                                    $hidden = $data['hidden'];
+                                }
+                                else
+                                {
+                                    $hidden = '';
+                                }
+                            
+                                $this->images->editImageByAdmin($fileName, $slug, $nsfw, $hidden, $id);
+                            }
+                        }
+                        else
+                        {
+                            $this->images->editImageByAdmin('', '', '', '', $id);
+                        }
                     }
                 }
             }
         }
 
+        $imageContent = $this->images->details($id);
+        $commentContent = $this->images->getComments($id);
+        
         return $this->view->render('photo_details.html', [
             'title' => 'Photo Details',
             'id' => $id,
@@ -212,20 +205,19 @@ class PhotosController extends Controller
 
     public function userPhotos($id)
     {
-        $imageContent = $this->images->getUserImages($id);
-        $userContent = $this->user->get($id);
-
-        if(!key_exists('id', $_GET) || !is_numeric($id))
+        if(!key_exists('id', $_GET) || !is_numeric($id) || empty($_GET['id']))
         {
             throw new NotFoundException();
         }
 
         $this->images->restrictUserPage($this->images, $id);
 
+        $imageContent = $this->images->getUserImages($id);
+        $userContent = $this->user->get($id);
         $userData = $this->user->get($id);
 
         return $this->view->render('user_photos.html', [
-            'title' => ucwords($userData[0]['username']) . ' Photos',
+            'title' => 'Photos of ' . ucwords($userData[0]['username']),
             'imageContent' => $imageContent,
             'userContent' => $userContent,
             'numOfPages' => $this->images->numOfUserPages($this->images, $id),

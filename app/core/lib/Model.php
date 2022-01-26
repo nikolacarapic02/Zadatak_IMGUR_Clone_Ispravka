@@ -46,25 +46,23 @@ class Model
 
     public function restrictPage($model)
     {
-        if(key_exists('page', $_GET))
+        $value = $this->checkPage();
+        $numOfPages = $this->numOfPages($model);
+
+        if($value > $numOfPages)
         {
-            $numOfPages = $this->numOfPages($model);
-            if($_GET['page'] > $numOfPages)
-            {
-                $this->page = $numOfPages;
-            }
+            $this->page = $numOfPages;
         }
     }
 
     public function restrictUserPage($model, $id)
     {
-        if(key_exists('page', $_GET))
+        $value = $this->checkPage();
+        $numOfUserPages = $this->numOfUserPages($model, $id);
+
+        if($value > $numOfUserPages)
         {
-            $numOfUserPages = $this->numOfUserPages($model, $id);
-            if($_GET['page'] > $numOfUserPages)
-            {
-                $this->page = $numOfUserPages;
-            }
+            $this->page = $numOfUserPages;
         }
     }
 

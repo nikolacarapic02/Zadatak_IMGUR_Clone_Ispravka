@@ -35,10 +35,13 @@ class ProfileController extends Controller
             throw new ForbidenException();
         }
 
-        $imageContent = $this->images->imagesForProfile(Application::$app->session->getSession('user'));
-        $galleryContent = $this->galleries->galleriesForProfile(Application::$app->session->getSession('user'));
-        $userContent = $this->user->profileDetails(Application::$app->session->getSession('user'));
-        $plan = $this->user->getPlan(Application::$app->session->getSession('user'));
+        $id = Application::$app->session->getSession('user');
+        $imageContent = $this->images->imagesForProfile($id);
+        $galleryContent = $this->galleries->galleriesForProfile($id);
+        $userContent = $this->user->profileDetails($id);
+        $plan = $this->user->getPlan($id);
+        $allPlans = $this->user->getAllPlans($id);
+        $restriction = $this->user->checkSubscriptionRights($id);
         
         return $this->view->render('profile.html', [
             'title' => 'Your Profile',
@@ -46,32 +49,23 @@ class ProfileController extends Controller
             'imageContent' => $imageContent,
             'userContent' => $userContent,
             'galleryContent' => $galleryContent,
-            'userId' => Application::$app->session->getSession('user'),
+            'userId' => $id,
             'plan' => $plan,
-            'planExpire' => strtotime($plan[0]['plan_expire']) ? date("Y-m-d",strtotime($plan[0]['plan_expire'])) : $plan[0]['plan_expire'],
-            'planStatus' => $plan[0]['status'] === 0 ? 'inactive' : 'active'
+            'planExpire' => key_exists('expire_time', $plan[0]) ? (strtotime($plan[0]['expire_time']) ? date("Y-m-d",strtotime($plan[0]['expire_time'])) : $plan[0]['expire_time']) : '',
+            'allPlans' => $allPlans,
+            'restriction' => $restriction
         ]); 
-    }
-
-    public function cancel()
-    {
-        $data = Application::$app->request->getData();
-
-        if(key_exists('cancel', $data))
-        {
-            $this->user->cancelSubscription(Application::$app->session->getSession('user'));
-
-            Application::$app->response->redirectToAnotherPage($this->uri);
-        }
     }
 
     public function create()
     {
         $data = Application::$app->request->getData();
-        $imageContent = $this->images->imagesForProfile(Application::$app->session->getSession('user'));
-        $galleryContent = $this->galleries->galleriesForProfile(Application::$app->session->getSession('user'));
-        $userContent = $this->user->profileDetails(Application::$app->session->getSession('user'));
-        $plan = $this->user->getPlan(Application::$app->session->getSession('user'));
+        $id = Application::$app->session->getSession('user');
+        $imageContent = $this->images->imagesForProfile($id);
+        $galleryContent = $this->galleries->galleriesForProfile($id);
+        $userContent = $this->user->profileDetails($id);
+        $plan = $this->user->getPlan($id);
+        $allPlans = $this->user->getAllPlans($id);
 
         if(isset($data['submitGallery']))
         {
@@ -87,8 +81,8 @@ class ProfileController extends Controller
                     'galleryContent' => $galleryContent,
                     'userId' => Application::$app->session->getSession('user'),
                     'plan' => $plan,
-                    'planExpire' => strtotime($plan[0]['plan_expire']) ? date("Y-m-d",strtotime($plan[0]['plan_expire'])) : $plan[0]['plan_expire'],
-                    'planStatus' => $plan[0]['status'] === 0 ? 'inactive' : 'active',
+                    'planExpire' => key_exists('expire_time', $plan[0]) ? (strtotime($plan[0]['expire_time']) ? date("Y-m-d",strtotime($plan[0]['expire_time'])) : $plan[0]['expire_time']) : '',
+                    'allPlans' => $allPlans,
                     'errors' => Application::$app->getErrors(),
                     'values' => Application::$app->request->getData()
                 ]); 
@@ -116,8 +110,8 @@ class ProfileController extends Controller
                     'galleryContent' => $galleryContent,
                     'userId' => Application::$app->session->getSession('user'),
                     'plan' => $plan,
-                    'planExpire' => strtotime($plan[0]['plan_expire']) ? date("Y-m-d",strtotime($plan[0]['plan_expire'])) : $plan[0]['plan_expire'],
-                    'planStatus' => $plan[0]['status'] === 0 ? 'inactive' : 'active',
+                    'planExpire' => key_exists('expire_time', $plan[0]) ? (strtotime($plan[0]['expire_time']) ? date("Y-m-d",strtotime($plan[0]['expire_time'])) : $plan[0]['expire_time']) : '',
+                    'allPlans' => $allPlans,
                     'errors' => Application::$app->getErrors(),
                     'values' => Application::$app->request->getData()
                 ]); 
@@ -132,13 +126,31 @@ class ProfileController extends Controller
         }
     }
 
+    public function cancel()
+    {
+        $data = Application::$app->request->getData();
+
+        if(key_exists('cancel', $data))
+        {
+            $this->user->cancelSubscription(Application::$app->session->getSession('user'));
+
+            Application::$app->response->redirectToAnotherPage($this->uri);
+        }
+    }
+
+    public function buy()
+    {
+        $data = Application::$app->request->getData();
+
+        if(key_exists('buy', $data))
+        {
+            Application::$app->response->redirectToAnotherPage('/plan_pricing');
+        }
+    }
+
     public function otherProfile($id)
     {
         $data = Application::$app->request->getData();
-        $imageContent = $this->images->imagesForProfile($id);
-        $galleryContent = $this->galleries->galleriesForProfile($id);
-        $userContent = $this->user->otherProfileDetails($id);
-        $uriParametars = '?'.$_SERVER['QUERY_STRING'];
         
         if(!key_exists('id', $_GET) || !is_numeric($id) || $id <= 0)
         {
@@ -150,22 +162,29 @@ class ProfileController extends Controller
             if(key_exists('status', $data))
             {
                 $this->user->changeUserStatus($id, $data['status']);
-                Application::$app->response->redirectToAnotherPage('/user_profile' . $uriParametars);
             }
 
             if(key_exists('role', $data))
             {
                 $this->user->changeUserRole($id, $data['role']);
-                Application::$app->response->redirectToAnotherPage('/user_profile' . $uriParametars);
             }
         }
 
+        $imageContent = $this->images->imagesForProfile($id);
+        $galleryContent = $this->galleries->galleriesForProfile($id);
+        $userContent = $this->user->otherProfileDetails($id);
+        $plan = $this->user->getPlan($id);
+        $allPlans = $this->user->getAllPlans($id);
+
         return $this->view->render('other_profile.html', [
-            'title' => ucwords($userContent[0]['username']) . ' Profile',
+            'title' =>  'Profile of ' . ucwords($userContent[0]['username']),
             'userContent' => $userContent,
             'imageContent' => $imageContent,
             'galleryContent' => $galleryContent,
             'user' => $this->user,
+            'plan' => $plan,
+            'planExpire' => key_exists('expire_time', $plan[0]) ? (strtotime($plan[0]['expire_time']) ? date("Y-m-d",strtotime($plan[0]['expire_time'])) : $plan[0]['expire_time']) : '',
+            'allPlans' => $allPlans,
             'id' => $id,
         ]);
     }

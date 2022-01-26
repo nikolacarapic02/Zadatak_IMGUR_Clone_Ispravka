@@ -26,14 +26,14 @@ class Database
 
     public function addNsfwToUser()
     {
-        $statement2 = $this->pdo->prepare("ALTER TABLE user ADD COLUMN nsfw tinyint(1) NOT NULL DEFAULT '0'");
-        $statement2->execute();
+        $statement = $this->pdo->prepare("ALTER TABLE user ADD COLUMN nsfw tinyint(1) NOT NULL DEFAULT '0'");
+        $statement->execute();
     }
 
     public function addStatusToUser()
     {
-        $statement2 = $this->pdo->prepare("ALTER TABLE user ADD COLUMN status enum('active','inactive') COLLATE utf8mb4_unicode_ci DEFAULT 'active'");
-        $statement2->execute();
+        $statement = $this->pdo->prepare("ALTER TABLE user ADD COLUMN status enum('active','inactive') COLLATE utf8mb4_unicode_ci DEFAULT 'active'");
+        $statement->execute();
     }
 
     public function dropTableDoctrine()
@@ -48,7 +48,10 @@ class Database
             moderator_id int(11) NOT NULL,
             image_id int(11) DEFAULT NULL,
             gallery_id int(11) DEFAULT NULL,
-            action longtext COLLATE utf8mb4_unicode_ci NOT NULL
+            action longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+            FOREIGN KEY (moderator_id) REFERENCES user(id),
+            FOREIGN KEY (image_id) REFERENCES image(id),
+            FOREIGN KEY (gallery_id) REFERENCES gallery(id)
         )");
         $statement->execute();
     }
@@ -82,15 +85,44 @@ class Database
     public function createTableSubscription()
     {
         $statement = $this->pdo->prepare("CREATE TABLE subscription(
+            id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
             user_id int(11) NOT NULL,
             user_email varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-            first_name varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-            last_name varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
             plan enum('free','1 month', '6 months', '12 months') COLLATE utf8mb4_unicode_ci DEFAULT 'free',
-            status tinyint(1) NOT NULL DEFAULT '1',
-            plan_expire timestamp,
-            additional_note longtext COLLATE utf8mb4_unicode_ci NOT NULL
+            status enum('active','inactive') COLLATE utf8mb4_unicode_ci,
+            cancel tinyint(1) NOT NULL DEFAULT '0',
+            buy_time timestamp,
+            expire_time timestamp,
+            additional_note longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES user(id)
         )");
+
+        $statement->execute();
+    }
+
+    public function createTablePayment()
+    {
+        $statement = $this->pdo->prepare("CREATE TABLE payment(
+            id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+            subscription_id int(11) NOT NULL,
+            amount varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+            method enum('credit','paypal', 'crypto') COLLATE utf8mb4_unicode_ci,
+            first_name varchar(255) COLLATE utf8mb4_unicode_ci,
+            last_name varchar(255) COLLATE utf8mb4_unicode_ci,
+            card_type enum('visa','mastercard', 'american_express') COLLATE utf8mb4_unicode_ci,
+            card_num varchar(255) COLLATE utf8mb4_unicode_ci,
+            paypal_mail varchar(255) COLLATE utf8mb4_unicode_ci,
+            crypto_mail varchar(255) COLLATE utf8mb4_unicode_ci,
+            data_validity tinyint(1) NOT NULL DEFAULT '1',
+            FOREIGN KEY (subscription_id) REFERENCES subscription(id)
+        )");
+
+        $statement->execute();
+    }
+
+    public function addCreateTimeToImage()
+    {
+        $statement = $this->pdo->prepare("ALTER TABLE image ADD COLUMN create_time timestamp NOT NULL DEFAULT '2022-01-01 00:00:00'");
         $statement->execute();
     }
 
@@ -121,25 +153,75 @@ class Database
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function subscribeToPlan($id, $attributes)
+    public function subscribeToPlan($user_id, $attributes)
     {
         $email = $attributes['email'];
-        $first_name = $attributes['first_name'];
-        $last_name = $attributes['last_name'];
         $plan = $attributes['plan'];
         $note = $attributes['note'];
+        $buy_time = date('Y-m-d H:i:s');
         $date = new DateTime('now');
-        $date->modify('+6 month');
-        $expire = $date->format('Y-m-d H:i:s');
 
-        $statement = $this->pdo->prepare("INSERT INTO subscription(user_id, user_email, first_name, last_name, plan, plan_expire, status, additional_note) 
-        VALUES ('$id', '$email', '$first_name', '$last_name', '$plan', '$expire', 1, '$note')");
-        $statement->execute();
+        if($plan === '1 month')
+        {
+            $date->modify('+1 month');
+            $expire = $date->format('Y-m-d H:i:s');
+        }
+        elseif($plan === '6 months')
+        {
+            $date->modify('+6 month');
+            $expire = $date->format('Y-m-d H:i:s');
+        }
+        else
+        {
+            $date->modify('+12 month');
+            $expire = $date->format('Y-m-d H:i:s');
+        }
+
+        $statement1 = $this->pdo->prepare("INSERT INTO subscription(user_id, user_email, plan, buy_time, expire_time, status, additional_note) 
+        VALUES ('$user_id', '$email', '$plan', '$buy_time', '$expire', 'active', '$note')");
+        $statement1->execute();
+
+        $statement2 = $this->pdo->prepare("SELECT LAST_INSERT_ID() as 'id'");
+        $statement2->execute();
+
+        $value = $statement2->fetchAll(\PDO::FETCH_ASSOC);
+
+        $subscription_id = $value[0]['id'];
+        $amount = $attributes['amount'];
+        $method = $attributes['payment_methods'];
+        $first_name = $attributes['first_name'];
+        $last_name = $attributes['last_name'];
+        $card_num = $attributes['card_num'];
+        $paypal_email = $attributes['paypal_email'];
+        $crypto_email = $attributes['crypto_email'];
+
+        if($attributes['card_type'] === 1)
+        {
+            $card_type = 'visa';
+        }
+        elseif($attributes['card_type'] === 2)
+        {
+            $card_type = 'mastercard';
+        }
+        else
+        {
+            $card_type = 'american_express';
+        }
+
+        $statement3 = $this->pdo->prepare("INSERT INTO payment (subscription_id, amount, method, first_name, last_name, card_type, card_num, paypal_mail, crypto_mail) 
+        VALUES ('$subscription_id', '$amount', '$method', '$first_name', '$last_name', '$card_type', '$card_num', '$paypal_email', '$crypto_email')");
+        $statement3->execute();
     }
 
     public function cancelSubscriptionForUser($user_id)
     {
-        $statement = $this->pdo->prepare("UPDATE subscription SET status = 0 WHERE user_id = '$user_id'");
+        $statement = $this->pdo->prepare("UPDATE subscription SET cancel = 1 WHERE user_id = '$user_id' AND status = 'active'");
+        $statement->execute();
+    }
+
+    public function setPlanStatusToInactive($user_id, $status)
+    {
+        $statement = $this->pdo->prepare("UPDATE subscription SET status = '$status' WHERE user_id = '$user_id'");
         $statement->execute();
     }
 
@@ -219,10 +301,44 @@ class Database
 
     public function getPlanInfo($id)
     {
-        $statement = $this->pdo->prepare("SELECT plan, plan_expire, status FROM subscription WHERE user_id = $id");
+        $statement = $this->pdo->prepare("SELECT plan, buy_time, expire_time, status, cancel FROM subscription WHERE user_id = $id and status = 'active'");
         $statement->execute();
 
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function getAllPlansInfo($id)
+    {
+        $statement = $this->pdo->prepare("SELECT plan, buy_time, expire_time, status, cancel FROM subscription WHERE user_id = $id");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function checkLastExpiredPlan($user_id)
+    {
+        $statement = $this->pdo->prepare("SELECT MAX(expire_time) as 'expire_time' FROM subscription WHERE user_id = $user_id AND status = 'inactive'");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function changePayPalDataValidity($email)
+    {
+        $statement = $this->pdo->prepare("UPDATE payment SET data_validity = 0 WHERE paypal_mail = '$email'");
+        $statement->execute();
+    }
+
+    public function changeCryptoDataValidity($email)
+    {
+        $statement = $this->pdo->prepare("UPDATE payment SET data_validity = 0 WHERE crypto_mail = '$email'");
+        $statement->execute();
+    }
+
+    public function changeCreditCardDataValidity()
+    {
+        $statement = $this->pdo->prepare("UPDATE payment SET data_validity = 0 WHERE ");
+        $statement->execute();
     }
 
     //End User
@@ -381,8 +497,9 @@ class Database
 
     public function createImage($file_name, $slug, $user_id)
     {
-        $statement = $this->pdo->prepare("INSERT INTO image (user_id, file_name, slug, nsfw, hidden)
-        VALUES ('$user_id', '$file_name', '$slug', 0, 0);");
+        $time = date('Y-m-d H:i:s');
+        $statement = $this->pdo->prepare("INSERT INTO image (user_id, file_name, slug, nsfw, hidden, create_time)
+        VALUES ('$user_id', '$file_name', '$slug', 0, 0, '$time');");
         $statement->execute();
 
         $statement1 = $this->pdo->prepare("SELECT LAST_INSERT_ID() as 'id';");
@@ -420,6 +537,14 @@ class Database
     {
         $statement = $this->pdo->prepare("DELETE FROM image WHERE id = '$id'");
         $statement->execute();
+    }
+
+    public function getCountOfCreatedImages($user_id, $first_date, $last_date)
+    {
+        $statement = $this->pdo->prepare("SELECT COUNT(*) as 'num' FROM image WHERE user_id = $user_id AND create_time BETWEEN '$first_date' AND '$last_date'");
+        $statement->execute();
+        
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     //End Image

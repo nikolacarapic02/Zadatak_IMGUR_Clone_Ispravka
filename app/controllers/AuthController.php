@@ -37,20 +37,24 @@ class AuthController extends Controller
             if($plan == 1)
             {
                 $plan = '1 month';
+                $amount = '10$';
             }
             else if($plan == 2)
             {
                 $plan = '6 months';
+                $amount = '30$';
             }
             else
             {
                 $plan = '12 months';
+                $amount = '50$';
             }
 
             return $this->view->render($value . '.html', [
                 'title' => 'Subscription',
                 'user' => $this->user->get(Application::$app->session->getSession('user')),
-                'plan' => $plan
+                'plan' => $plan,
+                'amount' => $amount
             ]);
         }
 
@@ -118,14 +122,17 @@ class AuthController extends Controller
         if($plan == 1)
         {
             $plan = '1 month';
+            $amount = '10$';
         }
         else if($plan == 2)
         {
             $plan = '6 months';
+            $amount = '30$';
         }
         else
         {
             $plan = '12 months';
+            $amount = '50$';
         }
 
         if(Application::$app->hasErrors())
@@ -135,7 +142,9 @@ class AuthController extends Controller
                 'title' => 'Subscription',
                 'values' => Application::$app->request->getData(),
                 'user' => $this->user->get(Application::$app->session->getSession('user')),
-                'plan' => $plan
+                'plan' => $plan,
+                'amount' => $amount,
+                'selectedMethod' => $data['payment_methods']
             ]);
         }
         else

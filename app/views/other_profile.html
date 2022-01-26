@@ -5,7 +5,7 @@
         <div class="row tm-mb-50">  
             <div class="col-xl-2"></div>          
             <div class="col-xl-8 col-lg-12 col-md-12 col-sm-12">
-                <div class="tm-bg-gray tm-video-details">
+                <div class="tm-bg-gray tm-video-details rounded-3">
                     <div class="text-center mb-5">
                         <h2 class="tm-text-primary">User: <i>{{ userContent.0.username }}</i></h2>
                     </div>                    
@@ -17,8 +17,23 @@
                             <span class="tm-text-gray-dark">Email: </span><span class="tm-text-primary ms-2">{{ userContent.0.email }}</span>
                         </div>
                         <div class="mr-4 mb-2 d-flex flex-wrap">
-                            <span class="tm-text-gray-dark">Status: </span><span class="tm-text-primary ms-2">{{ userContent.0.status }}</span>
+                            <span class="tm-text-gray-dark">Profile Status: </span><span class="tm-text-primary ms-2">{{ userContent.0.status }}</span>
                         </div>
+                        {% if not _app.isGuest() %}
+                            {% if user.isAdmin(_app.session.getSession('user')) %}
+                                <div class="mr-4 mb-2 d-flex flex-wrap">
+                                    <span class="tm-text-gray-dark">Plan: </span><span class="tm-text-primary ms-2">{{ plan.0.plan }}</span>
+                                </div>
+                                {% if plan.0.plan != 'free' %}
+                                    <div class="mr-4 mb-2 d-flex flex-wrap">
+                                        <span class="tm-text-gray-dark">Expire date: </span><span class="tm-text-primary ms-2">{{ planExpire }}</span>
+                                    </div>
+                                    <div class="mr-4 mb-2 d-flex flex-wrap">
+                                        <span class="tm-text-gray-dark">Plan status: </span><span class="tm-text-primary ms-2">{{ plan.0.status }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
                     </div>
                 </div>
             </div> 
@@ -61,15 +76,15 @@
                                     <div class="btn-group" data-toggle="buttons">
 
                                         <label class="btn  form-check-label">
-                                            <input type="radio"  autocomplete="off" name="role" value="1" {% if not userContent.isModerator(id) and  not userContent.isAdmin(id) %} checked {% endif %}> <span class="checkText">User</span>
+                                            <input type="radio"  autocomplete="off" name="role" value="1" {% if not user.isModerator(id) and  not userContent.isAdmin(id) %} checked {% endif %}> <span class="checkText">User</span>
                                         </label>
 
                                         <label class="btn form-check-label">
-                                            <input type="radio"  autocomplete="off" name="role" value="2" {% if userContent.isModerator(id) %} checked {% endif %}> <span class="checkText">Moderator</span>
+                                            <input type="radio"  autocomplete="off" name="role" value="2" {% if user.isModerator(id) %} checked {% endif %}> <span class="checkText">Moderator</span>
                                         </label>
 
                                         <label class="btn  form-check-label">
-                                            <input type="radio"  autocomplete="off" name="role" value="3" {% if userContent.isAdmin(id) %} checked {% endif %}> <span class="checkText">Admin</span>
+                                            <input type="radio"  autocomplete="off" name="role" value="3" {% if user.isAdmin(id) %} checked {% endif %}> <span class="checkText">Admin</span>
                                         </label>
 
                                     </div>
@@ -139,11 +154,11 @@
                     <img src="assets/img/gallery.jpg" alt="Gallery" class="img-fluid">
                     <figcaption class="d-flex align-items-center justify-content-center">
                         <h2>Details</h2>
-                        <a href="/gallery_details?id=gallery.id">View more</a>
+                        <a href="/gallery_details?id={{ gallery.id }}">View more</a>
                     </figcaption>                    
                 </figure>
                 <div class="d-flex justify-content-between tm-text-gray">
-                    <span class="tm-text-gray-light">gallery.name</span>
+                    <span class="tm-text-gray-light">{{ gallery.name }}</span>
                 </div>
             </div>
             {% endfor %}
@@ -154,5 +169,53 @@
             </div>            
         </div>  
     </div> 
+    {% if not _app.isGuest() %}
+        {% if user.isAdmin(_app.session.getSession('user')) %}
+            <div class="row mb-4">
+                <h2 class="tm-text-primary ">
+                    Subscription history
+                </h2>
+            </div>
+            <hr class="underline">
+            {% if allPlans is empty %}
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-5 mt-2">
+                    <p class="comment-text">There is no data</p>
+                </div>   
+            {% else %}
+                <div class="container-tableSub table-responsive mb-5"> 
+                    <div class="wrap-tableSub">
+                        <div class="tableSub m-b-110">
+                            <div class="tableSub-head">
+                                <table>
+                                    <thead>
+                                        <tr class="rowSub head">
+                                            <th class="cellSub column-sub-1">Ord.</th>
+                                            <th class="cellSub column-sub-2">Plan Name</th>
+                                            <th class="cellSub column-sub-3">Buy Date</th>
+                                            <th class="cellSub column-sub-4">Expire Date</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                            <div class="tableSub-body js-pscroll">
+                                <table>
+                                    <tbody>
+                                        {% for value in allPlans %}
+                                        <tr class="rowSub body">
+                                            <td class="cellSub column-sub-1">{{ loop.index }}</td>
+                                            <td class="cellSub column-sub-2">{{ value.plan }}</td>
+                                            <td class="cellSub column-sub-3">{{ value.buy_time }}</td>
+                                            <td class="cellSub column-sub-4">{{ value.expire_time }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    {% endif %}
 </div>
 {% endblock %}
