@@ -5,6 +5,8 @@ namespace app\controllers;
 use app\core\Application;
 use app\models\User;
 use app\core\lib\Controller;
+use app\exceptions\ForbidenException;
+use app\exceptions\NotFoundException;
 use Twig\Environment;
 
 class AuthController extends Controller
@@ -20,26 +22,57 @@ class AuthController extends Controller
 
     public function index()
     {
-        $value = Application::$app->request->getPath();
+        $uri = Application::$app->request->getPath();
 
-        if($value === '/register')
+        if($uri === '/register')
         {
-            return $this->view->render($value . '.html', ['title' => 'Register Page']);
+            if(!Application::$app->isGuest())
+            {
+                throw new ForbidenException();
+            }
+            else
+            {
+                return $this->view->render($uri . '.html', ['title' => 'Register Page']);
+            }
         }
-        else if($value === '/login')
+        else if($uri === '/login')
         {
-            return $this->view->render($value . '.html', ['title' => 'Login Page']);
+            if(!Application::$app->isGuest())
+            {
+                throw new ForbidenException();
+            }
+            else
+            {
+                return $this->view->render($uri . '.html', ['title' => 'Login Page']);
+            }
         }
-        else
+        else if($uri === '/subscription')
         {
+            $validPlanValues = ['1', '1u', '2', '2u', '3', '3u'];
+
+            if(Application::$app->isGuest() || $this->user->checkUserHavePendingPlan(Application::$app->session->getSession('user')))
+            {
+                throw new ForbidenException();
+            }
+
+            if(!key_exists('plan', $_GET))
+            {
+                throw new NotFoundException();
+            }
+
             $plan = $_GET['plan'];
 
-            if($plan == 1)
+            if(!in_array($plan, $validPlanValues))
+            {
+                throw new NotFoundException();
+            }
+
+            if(strpos($plan, '1') === 0)
             {
                 $plan = '1 month';
                 $amount = '10$';
             }
-            else if($plan == 2)
+            else if(strpos($plan, '2') === 0)
             {
                 $plan = '6 months';
                 $amount = '30$';
@@ -50,7 +83,7 @@ class AuthController extends Controller
                 $amount = '50$';
             }
 
-            return $this->view->render($value . '.html', [
+            return $this->view->render($uri . '.html', [
                 'title' => 'Subscription',
                 'user' => $this->user->get(Application::$app->session->getSession('user')),
                 'plan' => $plan,
@@ -117,19 +150,19 @@ class AuthController extends Controller
 
         Application::$app->validation('subscription');
 
-        $plan = $_GET['plan'];
+        $planUriValue = $_GET['plan'];
 
-        if($plan == 1)
+        if(strpos($planUriValue, '1') === 0)
         {
             $plan = '1 month';
             $amount = '10$';
         }
-        else if($plan == 2)
+        else if(strpos($planUriValue, '2') === 0)
         {
             $plan = '6 months';
             $amount = '30$';
         }
-        else
+        else if(strpos($planUriValue, '3') === 0)
         {
             $plan = '12 months';
             $amount = '50$';
@@ -144,8 +177,13 @@ class AuthController extends Controller
                 'user' => $this->user->get(Application::$app->session->getSession('user')),
                 'plan' => $plan,
                 'amount' => $amount,
-                'selectedMethod' => $data['payment_methods']
+                'selectedMethod' => $data['method']
             ]);
+        }
+        else if(strpos($planUriValue, 'u'))
+        {
+            $this->user->upgrade($data);
+            Application::$app->response->redirectToAnotherPage('/profile');
         }
         else
         {

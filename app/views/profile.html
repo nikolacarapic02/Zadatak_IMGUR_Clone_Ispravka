@@ -33,8 +33,12 @@
                     {% if plan.0.plan != 'free' %}
                         <div class="text-center">
                             <form action="" method="post">
-                                <button type="submit" name="cancel" class="btn btn-primary editButton" {% if plan.0.plan == 'free' or plan.0.cancel == 1 %} disabled {% endif %}>Cancel Plan</button>
-                                {% if plan.0.cancel == 1 %}<p>You canceled the plan</p>{% endif %}
+                                <button type="submit" name="cancel" class="btn btn-primary editButton mb-3" {% if plan.0.plan == 'free' or plan.0.cancel == 1 or pendingPlan%} disabled {% endif %}>Cancel Plan</button>
+                                {% if plan.0.cancel == 1 %}<p class="fs-5">You canceled the plan</p>{% endif %}
+                            </form>
+                            <form action="" method="post">
+                                <button type="submit" name="upgrade" class="btn btn-primary editButton" {% if pendingPlan %} disabled {% endif %}>Upgrade Plan</button>
+                                {% if pendingPlan %}<p class="fs-5">You already have a plan that will be active after the current one</p>{% endif %}
                             </form>
                         </div>
                     {% else %}
@@ -203,10 +207,11 @@
                             <table>
                                 <thead>
                                     <tr class="rowSub head">
-                                        <th class="cellSub column-sub-1">Ord.</th>
-                                        <th class="cellSub column-sub-2">Plan Name</th>
-                                        <th class="cellSub column-sub-3">Buy Date</th>
-                                        <th class="cellSub column-sub-4">Expire Date</th>
+                                        <th class="column-sub-1">Ord.</th>
+                                        <th class="column-sub-2">Plan Name</th>
+                                        <th class="column-sub-3">Start Date</th>
+                                        <th class="column-sub-4">Expire Date</th>
+                                        <th class="column-sub-5">Status</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -216,10 +221,11 @@
                                 <tbody>
                                     {% for value in allPlans %}
                                     <tr class="rowSub body">
-                                        <td class="cellSub column-sub-1">{{ loop.index }}</td>
-                                        <td class="cellSub column-sub-2">{{ value.plan }}</td>
-                                        <td class="cellSub column-sub-3">{{ value.buy_time }}</td>
-                                        <td class="cellSub column-sub-4">{{ value.expire_time }}</td>
+                                        <td class="column-sub-1">{{ loop.index }}</td>
+                                        <td class="column-sub-2">{{ value.plan }}</td>
+                                        <td class="column-sub-3">{{ value.start_time }}</td>
+                                        <td class="column-sub-4">{{ value.expire_time }}</td>
+                                        <td class="column-sub-5">{{ value.status }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

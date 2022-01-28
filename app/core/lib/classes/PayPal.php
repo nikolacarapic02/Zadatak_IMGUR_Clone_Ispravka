@@ -33,7 +33,7 @@ class PayPal implements PayPalInterface, PaymentInterface
 
     public function makePayment()
     {
-        if($this->checkPayment)
+        if($this->checkPayment())
         {
             return true;
         }

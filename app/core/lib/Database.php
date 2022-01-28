@@ -89,9 +89,9 @@ class Database
             user_id int(11) NOT NULL,
             user_email varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
             plan enum('free','1 month', '6 months', '12 months') COLLATE utf8mb4_unicode_ci DEFAULT 'free',
-            status enum('active','inactive') COLLATE utf8mb4_unicode_ci,
+            status enum('active','inactive', 'pending') COLLATE utf8mb4_unicode_ci,
             cancel tinyint(1) NOT NULL DEFAULT '0',
-            buy_time timestamp,
+            start_time timestamp,
             expire_time timestamp,
             additional_note longtext COLLATE utf8mb4_unicode_ci NOT NULL,
             FOREIGN KEY (user_id) REFERENCES user(id)
@@ -109,7 +109,7 @@ class Database
             method enum('credit','paypal', 'crypto') COLLATE utf8mb4_unicode_ci,
             first_name varchar(255) COLLATE utf8mb4_unicode_ci,
             last_name varchar(255) COLLATE utf8mb4_unicode_ci,
-            card_type enum('visa','mastercard', 'american_express') COLLATE utf8mb4_unicode_ci,
+            card_type enum('visa', 'mastercard', 'american_express', 'none') COLLATE utf8mb4_unicode_ci,
             card_num varchar(255) COLLATE utf8mb4_unicode_ci,
             paypal_mail varchar(255) COLLATE utf8mb4_unicode_ci,
             crypto_mail varchar(255) COLLATE utf8mb4_unicode_ci,
@@ -153,97 +153,17 @@ class Database
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function subscribeToPlan($user_id, $attributes)
-    {
-        $email = $attributes['email'];
-        $plan = $attributes['plan'];
-        $note = $attributes['note'];
-        $buy_time = date('Y-m-d H:i:s');
-        $date = new DateTime('now');
-
-        if($plan === '1 month')
-        {
-            $date->modify('+1 month');
-            $expire = $date->format('Y-m-d H:i:s');
-        }
-        elseif($plan === '6 months')
-        {
-            $date->modify('+6 month');
-            $expire = $date->format('Y-m-d H:i:s');
-        }
-        else
-        {
-            $date->modify('+12 month');
-            $expire = $date->format('Y-m-d H:i:s');
-        }
-
-        $statement1 = $this->pdo->prepare("INSERT INTO subscription(user_id, user_email, plan, buy_time, expire_time, status, additional_note) 
-        VALUES ('$user_id', '$email', '$plan', '$buy_time', '$expire', 'active', '$note')");
-        $statement1->execute();
-
-        $statement2 = $this->pdo->prepare("SELECT LAST_INSERT_ID() as 'id'");
-        $statement2->execute();
-
-        $value = $statement2->fetchAll(\PDO::FETCH_ASSOC);
-
-        $subscription_id = $value[0]['id'];
-        $amount = $attributes['amount'];
-        $method = $attributes['payment_methods'];
-        $first_name = $attributes['first_name'];
-        $last_name = $attributes['last_name'];
-        $card_num = $attributes['card_num'];
-        $paypal_email = $attributes['paypal_email'];
-        $crypto_email = $attributes['crypto_email'];
-
-        if($attributes['card_type'] === 1)
-        {
-            $card_type = 'visa';
-        }
-        elseif($attributes['card_type'] === 2)
-        {
-            $card_type = 'mastercard';
-        }
-        else
-        {
-            $card_type = 'american_express';
-        }
-
-        $statement3 = $this->pdo->prepare("INSERT INTO payment (subscription_id, amount, method, first_name, last_name, card_type, card_num, paypal_mail, crypto_mail) 
-        VALUES ('$subscription_id', '$amount', '$method', '$first_name', '$last_name', '$card_type', '$card_num', '$paypal_email', '$crypto_email')");
-        $statement3->execute();
-    }
-
-    public function cancelSubscriptionForUser($user_id)
-    {
-        $statement = $this->pdo->prepare("UPDATE subscription SET cancel = 1 WHERE user_id = '$user_id' AND status = 'active'");
-        $statement->execute();
-    }
-
-    public function setPlanStatusToInactive($user_id, $status)
-    {
-        $statement = $this->pdo->prepare("UPDATE subscription SET status = '$status' WHERE user_id = '$user_id'");
-        $statement->execute();
-    }
-
     public function getUser($id)
     {
-        $statement = $this->pdo->prepare("SELECT id, username, email, role, nsfw, status  FROM user WHERE id = $id");
+        $statement = $this->pdo->prepare("SELECT id, username, email, role, nsfw, status FROM user WHERE id = $id");
         $statement->execute();
 
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function getCommentsForImage($id)
+    public function getAllUsers()
     {
-        $statement = $this->pdo->prepare("SELECT * FROM comment WHERE image_id = $id ORDER BY id DESC");
-        $statement->execute();
-
-        return $statement->fetchAll(\PDO::FETCH_ASSOC);
-    }
-
-    public function getCommentsForGallery($id)
-    {
-        $statement = $this->pdo->prepare("SELECT * FROM comment WHERE gallery_id = $id ORDER BY id DESC");
+        $statement = $this->pdo->prepare("SELECT id, username, email, role, nsfw, status FROM user");
         $statement->execute();
 
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -299,9 +219,253 @@ class Database
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    //Subscriptions
+
+    public function subscribeToPlan($user_id, $attributes)
+    {
+        $email = $attributes['email'];
+        $plan = $attributes['plan'];
+        $note = $attributes['note'];
+        $start_time = date('Y-m-d H:i:s');
+        $date = new DateTime('now');
+
+        if($plan === '1 month')
+        {
+            $date->modify('+1 month');
+            $expire = $date->format('Y-m-d H:i:s');
+        }
+        else if($plan === '6 months')
+        {
+            $date->modify('+6 month');
+            $expire = $date->format('Y-m-d H:i:s');
+        }
+        else
+        {
+            $date->modify('+12 month');
+            $expire = $date->format('Y-m-d H:i:s');
+        }
+
+        $statement1 = $this->pdo->prepare("INSERT INTO subscription(user_id, user_email, plan, start_time, expire_time, status, additional_note) 
+        VALUES ('$user_id', '$email', '$plan', '$start_time', '$expire', 'active', '$note')");
+        $statement1->execute();
+
+        $statement2 = $this->pdo->prepare("SELECT LAST_INSERT_ID() as 'id'");
+        $statement2->execute();
+
+        $value = $statement2->fetchAll(\PDO::FETCH_ASSOC);
+
+        $subscription_id = $value[0]['id'];
+        $amount = $attributes['amount'];
+        $method = $attributes['method'];
+        $first_name = $attributes['first_name'];
+        $last_name = $attributes['last_name'];
+        $card_num = $attributes['card_num'];
+        $paypal_email = $attributes['paypal_mail'];
+        $crypto_email = $attributes['crypto_mail'];
+
+        if($method === 'credit')
+        {
+            if($attributes['card_type'] === 1)
+            {
+                $card_type = 'visa';
+            }
+            else if($attributes['card_type'] === 2)
+            {
+                $card_type = 'mastercard';
+            }
+            else
+            {
+                $card_type = 'american_express';
+            }
+        }
+        else
+        {
+            $card_type = 'none';
+        }
+
+        $statement3 = $this->pdo->prepare("INSERT INTO payment (subscription_id, amount, method, first_name, last_name, card_type, card_num, paypal_mail, crypto_mail) 
+        VALUES ('$subscription_id', '$amount', '$method', '$first_name', '$last_name', '$card_type', '$card_num', '$paypal_email', '$crypto_email')");
+        $statement3->execute();
+    }
+
+    public function renewalPlan($user_id, $planInfo, $paymentInfo)
+    {
+        $email = $planInfo['user_email'];
+        $plan = $planInfo['plan'];
+        $note = $planInfo['additional_note'];
+        $start_time = date('Y-m-d H:i:s');
+        $date = new DateTime('now');
+
+        if($plan === '1 month')
+        {
+            $date->modify('+1 month');
+            $expire = $date->format('Y-m-d H:i:s');
+        }
+        else if($plan === '6 months')
+        {
+            $date->modify('+6 month');
+            $expire = $date->format('Y-m-d H:i:s');
+        }
+        else
+        {
+            $date->modify('+12 month');
+            $expire = $date->format('Y-m-d H:i:s');
+        }
+
+        $statement1 = $this->pdo->prepare("INSERT INTO subscription(user_id, user_email, plan, start_time, expire_time, status, additional_note) 
+        VALUES ('$user_id', '$email', '$plan', '$start_time', '$expire', 'active', '$note')");
+        $statement1->execute();
+
+        $statement2 = $this->pdo->prepare("SELECT LAST_INSERT_ID() as 'id'");
+        $statement2->execute();
+        
+        $value = $statement2->fetchAll(\PDO::FETCH_ASSOC);
+
+        $subscription_id = $value[0]['id'];
+        $amount = $paymentInfo['amount'];
+        $method = $paymentInfo['method'];
+        $first_name = $paymentInfo['first_name'];
+        $last_name = $paymentInfo['last_name'];
+        $card_num = $paymentInfo['card_num'];
+        $paypal_email = $paymentInfo['paypal_mail'];
+        $crypto_email = $paymentInfo['crypto_mail'];
+
+        if($method === 'credit')
+        {
+            if($paymentInfo['card_type'] === 1)
+            {
+                $card_type = 'visa';
+            }
+            else if($paymentInfo['card_type'] === 2)
+            {
+                $card_type = 'mastercard';
+            }
+            else
+            {
+                $card_type = 'american_express';
+            }
+        }
+        else
+        {
+            $card_type = 'none';
+        }
+
+        $statement3 = $this->pdo->prepare("INSERT INTO payment (subscription_id, amount, method, first_name, last_name, card_type, card_num, paypal_mail, crypto_mail) 
+        VALUES ('$subscription_id', '$amount', '$method', '$first_name', '$last_name', '$card_type', '$card_num', '$paypal_email', '$crypto_email')");
+        $statement3->execute();
+    }
+
+    public function upgradeExistingPlan($user_id, $attributes)
+    {
+        $email = $attributes['email'];
+        $plan = $attributes['plan'];
+        $note = $attributes['note'];
+        $amount = $attributes['amount'];
+        $method = $attributes['method'];
+        $first_name = $attributes['first_name'];
+        $last_name = $attributes['last_name'];
+        $card_num = $attributes['card_num'];
+        $paypal_email = $attributes['paypal_mail'];
+        $crypto_email = $attributes['crypto_mail'];
+        
+        $oldPlan = $this->getPlanInfo($user_id);
+        $oldPayment = $this->getPaymentInfo($oldPlan[0]['id']);
+
+        if(trim($amount, '$') > trim($oldPayment[0]['amount'], '$'))
+        {
+            $start_time = date('Y-m-d H:i:s');
+            $date = new DateTime('now');
+
+            if($plan === '6 months')
+            {
+                $date->modify('+6 month');
+                $expire = $date->format('Y-m-d H:i:s');
+            }
+            else
+            {
+                $date->modify('+12 month');
+                $expire = $date->format('Y-m-d H:i:s');
+            }
+
+            $this->setPlanStatus($oldPlan[0]['id'], 'inactive');
+
+            $statement1 = $this->pdo->prepare("INSERT INTO subscription(user_id, user_email, plan, start_time, expire_time, status, additional_note) 
+            VALUES ('$user_id', '$email', '$plan', '$start_time', '$expire', 'active', '$note')");
+            $statement1->execute();
+        }
+        else
+        {
+            $start_time = $oldPlan[0]['expire_time'];
+
+            if($plan === '1 month')
+            {
+                $expire = date('Y-m-d H:i:s', strtotime('+1 month', strtotime($start_time)));
+            }
+            else
+            {
+                $expire = date('Y-m-d H:i:s', strtotime('+6 month', strtotime($start_time)));
+            }
+
+            $statement1 = $this->pdo->prepare("INSERT INTO subscription(user_id, user_email, plan, start_time, expire_time, status, additional_note) 
+            VALUES ('$user_id', '$email', '$plan', '$start_time', '$expire', 'pending', '$note')");
+            $statement1->execute();
+        }
+
+        $statement2 = $this->pdo->prepare("SELECT LAST_INSERT_ID() as 'id'");
+        $statement2->execute();
+
+        $value = $statement2->fetchAll(\PDO::FETCH_ASSOC);
+
+        $subscription_id = $value[0]['id'];
+
+        if($method === 'credit')
+        {
+            if($attributes['card_type'] === 1)
+            {
+                $card_type = 'visa';
+            }
+            else if($attributes['card_type'] === 2)
+            {
+                $card_type = 'mastercard';
+            }
+            else
+            {
+                $card_type = 'american_express';
+            }
+        }
+        else
+        {
+            $card_type = 'none';
+        }
+
+        $statement3 = $this->pdo->prepare("INSERT INTO payment (subscription_id, amount, method, first_name, last_name, card_type, card_num, paypal_mail, crypto_mail) 
+        VALUES ('$subscription_id', '$amount', '$method', '$first_name', '$last_name', '$card_type', '$card_num', '$paypal_email', '$crypto_email')");
+        $statement3->execute();
+    }
+
+    public function cancelSubscriptionForUser($user_id)
+    {
+        $statement = $this->pdo->prepare("UPDATE subscription SET cancel = 1 WHERE user_id = '$user_id' AND status = 'active'");
+        $statement->execute();
+    }
+
+    public function setPlanStatus($plan_id, $status)
+    {
+        $statement = $this->pdo->prepare("UPDATE subscription SET status = '$status' WHERE id = '$plan_id' AND (status = 'active' OR status = 'pending')");
+        $statement->execute();
+    }
+
     public function getPlanInfo($id)
     {
-        $statement = $this->pdo->prepare("SELECT plan, buy_time, expire_time, status, cancel FROM subscription WHERE user_id = $id and status = 'active'");
+        $statement = $this->pdo->prepare("SELECT * FROM subscription WHERE user_id = $id and status = 'active'");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function getPendingPlanInfo($user_id)
+    {
+        $statement = $this->pdo->prepare("SELECT id, plan, start_time, expire_time, status, cancel FROM subscription WHERE user_id = $user_id and status = 'pending'");
         $statement->execute();
 
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -309,7 +473,7 @@ class Database
 
     public function getAllPlansInfo($id)
     {
-        $statement = $this->pdo->prepare("SELECT plan, buy_time, expire_time, status, cancel FROM subscription WHERE user_id = $id");
+        $statement = $this->pdo->prepare("SELECT id, plan, start_time, expire_time, status, cancel FROM subscription WHERE user_id = $id");
         $statement->execute();
 
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -340,6 +504,16 @@ class Database
         $statement = $this->pdo->prepare("UPDATE payment SET data_validity = 0 WHERE ");
         $statement->execute();
     }
+
+    public function getPaymentInfo($subscription_id)
+    {
+        $statement = $this->pdo->prepare("SELECT * FROM payment WHERE subscription_id = '$subscription_id'");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    //End Subscriptions
 
     //End User
 
@@ -444,6 +618,14 @@ class Database
     public function getNumOfYourAllImages($user_id)
     {
         $statement = $this->pdo->prepare("SELECT COUNT(id) as 'num' FROM image WHERE user_id = '$user_id'");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function getCommentsForImage($id)
+    {
+        $statement = $this->pdo->prepare("SELECT * FROM comment WHERE image_id = $id ORDER BY id DESC");
         $statement->execute();
 
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -640,6 +822,14 @@ class Database
     public function getNumOfYourAllGalleries($user_id)
     {
         $statement = $this->pdo->prepare("SELECT COUNT(id) as 'num' FROM gallery WHERE user_id = '$user_id'");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function getCommentsForGallery($id)
+    {
+        $statement = $this->pdo->prepare("SELECT * FROM comment WHERE gallery_id = $id ORDER BY id DESC");
         $statement->execute();
 
         return $statement->fetchAll(\PDO::FETCH_ASSOC);

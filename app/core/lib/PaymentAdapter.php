@@ -18,7 +18,7 @@ class PaymentAdapter implements PaymentInterface
 
     public function checkPayment()
     {
-        $this->card->checkCard($this->attributes['card_num']);
+        $this->card->checkCard($this->attributes);
     }
 
     public function makePayment()

@@ -6,6 +6,8 @@ interface SubscriptionInterface
 {
     public function subscribe(array $attributes);
 
+    public function upgrade(array $attributes);
+
     public function cancelSubscription($user_id);
 
     public function checkSubscriptionRights($user_id);

@@ -183,29 +183,31 @@
                 </div>   
             {% else %}
                 <div class="container-tableSub table-responsive mb-5"> 
-                    <div class="wrap-tableSub">
-                        <div class="tableSub m-b-110">
-                            <div class="tableSub-head">
+                    <div class="wrap-table100">
+                        <div class="table100 m-b-110">
+                            <div class="table100-head">
                                 <table>
                                     <thead>
                                         <tr class="rowSub head">
-                                            <th class="cellSub column-sub-1">Ord.</th>
-                                            <th class="cellSub column-sub-2">Plan Name</th>
-                                            <th class="cellSub column-sub-3">Buy Date</th>
-                                            <th class="cellSub column-sub-4">Expire Date</th>
+                                            <th class="column-sub-1">Ord.</th>
+                                            <th class="column-sub-2">Plan Name</th>
+                                            <th class="column-sub-3">Buy Date</th>
+                                            <th class="column-sub-4">Expire Date</th>
+                                            <th class="column-sub-5">Status</th>
                                         </tr>
                                     </thead>
                                 </table>
                             </div>
-                            <div class="tableSub-body js-pscroll">
+                            <div class="table100-body js-pscroll">
                                 <table>
                                     <tbody>
                                         {% for value in allPlans %}
                                         <tr class="rowSub body">
-                                            <td class="cellSub column-sub-1">{{ loop.index }}</td>
-                                            <td class="cellSub column-sub-2">{{ value.plan }}</td>
-                                            <td class="cellSub column-sub-3">{{ value.buy_time }}</td>
-                                            <td class="cellSub column-sub-4">{{ value.expire_time }}</td>
+                                            <td class="column-sub-1">{{ loop.index }}</td>
+                                            <td class="column-sub-2">{{ value.plan }}</td>
+                                            <td class="column-sub-3">{{ value.start_time }}</td>
+                                            <td class="column-sub-4">{{ value.expire_time }}</td>
+                                            <td class="column-sub-5">{{ value.status }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

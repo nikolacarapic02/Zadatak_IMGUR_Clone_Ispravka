@@ -92,6 +92,16 @@ a:disabled
 .form-group { margin-bottom: 25px; }
 .tm-btn-big { padding: 12px 90px 14px; }
 
+.authContainer
+{
+    background-image: linear-gradient(
+        to bottom, rgba(255,255,255,0.6) 0%,
+        rgba(255,255,255,0.9) 100%), 
+        url('../img/auth_background.jpeg');
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
 .navbar-toggler:focus { box-shadow: none; }
 .navbar-brand {
     color: #009999;
@@ -384,23 +394,28 @@ figure.effect-ming:hover img { opacity: 0.4; }
    
 .column-sub-1 
 {
-    width: 15%;
+    width: 10%;
     padding-left: 20px;
 }
   
 .column-sub-2
 {
-    width: 28%;
+    width: 25%;
 }
   
 .column-sub-3
 {
-    width: 28%;
+    width: 25%;
 }
 
 .column-sub-4
 {
-    width: 28%;
+    width: 25%;
+} 
+
+.column-sub-5
+{
+    width: 15%;
 } 
 
 /* About */
@@ -503,6 +518,20 @@ select:not([multiple]) {
 .text-danger
 {
     font-size: 0.9rem;
+}
+
+.authFormLogin
+{
+    padding-top : 170px;
+    margin: auto;
+    height: 100vh;
+}
+
+.authFormRegister
+{
+    padding-top : 140px;
+    margin: auto;
+    height: 100vh;
 }
 
 /* Moderator Logging */

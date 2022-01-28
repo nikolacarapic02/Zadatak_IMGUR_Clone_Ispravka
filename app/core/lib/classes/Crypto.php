@@ -32,7 +32,7 @@ class Crypto implements CryptoInterface, PaymentInterface
 
     public function makePayment()
     {
-        if($this->checkPayment)
+        if($this->checkPayment())
         {
             return true;
         }

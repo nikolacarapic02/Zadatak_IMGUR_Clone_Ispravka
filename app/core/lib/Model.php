@@ -20,8 +20,8 @@ class Model
 
         if($model instanceof Image || $model instanceof Gallery)
         {
-            $this->page = $this->checkPage($model);
             $this->uri = Application::$app->request->getPath();
+            $this->page = $this->checkPage($model);
         }
     }
 

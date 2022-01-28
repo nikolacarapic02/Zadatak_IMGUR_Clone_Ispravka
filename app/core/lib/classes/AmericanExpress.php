@@ -9,11 +9,11 @@ class AmericanExpress implements CreditCardInterface
 {
     private bool $cardValidity = true;
 
-    public function checkCard($card_num)
+    public function checkCard(array $attributes)
     {
-        if(!$card_num)
+        if(!$attributes)
         {
-            Application::$app->db->changeCreditCardDataValidity($card_num);
+            Application::$app->db->changeCreditCardDataValidity($attributes['card_num']);
             $this->cardValidity = false;
         }
     }

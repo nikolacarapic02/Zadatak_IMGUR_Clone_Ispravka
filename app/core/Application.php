@@ -8,8 +8,6 @@ use app\core\lib\Session;
 use Bramus\Router\Router;
 use app\core\lib\Database;
 use app\core\lib\Response;
-use app\models\Gallery;
-use app\models\Image;
 
 class Application
 {
@@ -22,9 +20,6 @@ class Application
     public Response $response;
     public Request $request;
     public Session $session;
-    public ?User $user;
-    public ?Image $image;
-    public ?Gallery $gallery;
 
     public function __construct($config)
     {
@@ -34,18 +29,6 @@ class Application
         $this->response = new Response();
         $this->request = new Request();
         $this->session = new Session();
-
-        if(!$this->isGuest())
-        {
-            $this->user = new User();
-        }
-        else
-        {
-            $this->user = null;
-        }
-
-        $this->image = new Image();
-        $this->gallery = new Gallery();
     }
 
     public function validation($action)
@@ -170,12 +153,12 @@ class Application
         }
         else if($action === 'subscription')
         {
-            if($data['payment_methods'] === 'Select a payment method')
+            if($data['method'] === 'Select a payment method')
             {
-                $this->errors['payment_methods'] = 'You must select a payment method!';
+                $this->errors['method'] = 'You must select a payment method!';
             }
 
-            if($data['payment_methods'] === 'credit')
+            if($data['method'] === 'credit')
             {
                 if(empty($data['first_name']))
                 {
@@ -193,27 +176,27 @@ class Application
                 }
             }
 
-            if($data['payment_methods'] === 'paypal')
+            if($data['method'] === 'paypal')
             {
-                if(empty($data['paypal_email']))
+                if(empty($data['paypal_mail']))
                 {
-                    $this->errors['paypal_email'] = 'This field is required!';
+                    $this->errors['paypal_mail'] = 'This field is required!';
                 }
-                else if(!filter_var($data['paypal_email'], FILTER_VALIDATE_EMAIL))
+                else if(!filter_var($data['paypal_mail'], FILTER_VALIDATE_EMAIL))
                 {
-                    $this->errors['paypal_email'] =  'Email format must be correct!';
+                    $this->errors['paypal_mail'] =  'Email format must be correct!';
                 }
             }
 
-            if($data['payment_methods'] === 'crypto')
+            if($data['method'] === 'crypto')
             {
-                if(empty($data['crypto_email']))
+                if(empty($data['crypto_mail']))
                 {
-                    $this->errors['crypto_email'] = 'This field is required!';
+                    $this->errors['crypto_mail'] = 'This field is required!';
                 }
-                else if(!filter_var($data['crypto_email'], FILTER_VALIDATE_EMAIL))
+                else if(!filter_var($data['crypto_mail'], FILTER_VALIDATE_EMAIL))
                 {
-                    $this->errors['crypto_email'] =  'Email format must be correct!';
+                    $this->errors['crypto_mail'] =  'Email format must be correct!';
                 }
             }
         }
@@ -251,7 +234,9 @@ class Application
 
     public function displayUserName()
     {
-        $registeredUser = $this->user->get($this->session->getSession('user'));
+        $user = new User();
+        $registeredUser = $user->get($this->session->getSession('user'));
+
         if(!$this->isGuest())
         {
             return $registeredUser[0]['username'];

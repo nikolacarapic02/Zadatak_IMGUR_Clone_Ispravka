@@ -9,11 +9,11 @@ class VisaCard implements CreditCardInterface
 {
     private bool $cardValidity = true;
 
-    public function checkCard($card_num)
+    public function checkCard(array $attrbutes)
     {
-        if(!$card_num)
+        if(!$attrbutes)
         {
-            Application::$app->db->changeCreditCardDataValidity($card_num);
+            Application::$app->db->changeCreditCardDataValidity($attrbutes['card_num']);
             $this->cardValidity = false;
         }
     }

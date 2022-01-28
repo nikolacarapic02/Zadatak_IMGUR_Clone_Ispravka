@@ -7,7 +7,7 @@
             <img src="uploads/{{ imageContent.0.file_name }}" alt="{{ imageContent.0.file_name }}" class="img-fluid photoDetail">
         </div>
         <div class="col-xl-4 col-lg-5 col-md-6 col-sm-12">
-            <div class="tm-bg-gray tm-video-details">
+            <div class="tm-bg-gray tm-video-details rounded-3">
                 <div class="text-center mb-5">
                     <a href="uploads/{{ imageContent.0.file_name }}" class="btn btn-primary tm-btn-big" download="%s">
                         <span class="fas fa-download"></span>  Download
@@ -140,7 +140,7 @@
                 <hr class="underline underlineForm">
                 {% endfor %}
             {% endif %}
-            <div class="bg-light p-2">
+            <div class="bg-light p-2 rounded-3">
                 <form action="" method = "post">
                     <div class="d-flex flex-row align-items-start"><img class="rounded-circle" src="assets/img/user.png" width="40">
                         <textarea class="form-control ml-1 shadow-none textarea" name="comment"></textarea>

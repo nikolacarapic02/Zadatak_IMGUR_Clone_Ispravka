@@ -42,6 +42,7 @@ class ProfileController extends Controller
         $plan = $this->user->getPlan($id);
         $allPlans = $this->user->getAllPlans($id);
         $restriction = $this->user->checkSubscriptionRights($id);
+        $pendingPlan = $this->user->checkUserHavePendingPlan($id);
         
         return $this->view->render('profile.html', [
             'title' => 'Your Profile',
@@ -53,7 +54,8 @@ class ProfileController extends Controller
             'plan' => $plan,
             'planExpire' => key_exists('expire_time', $plan[0]) ? (strtotime($plan[0]['expire_time']) ? date("Y-m-d",strtotime($plan[0]['expire_time'])) : $plan[0]['expire_time']) : '',
             'allPlans' => $allPlans,
-            'restriction' => $restriction
+            'restriction' => $restriction,
+            'pendingPlan' => $pendingPlan
         ]); 
     }
 
@@ -66,6 +68,7 @@ class ProfileController extends Controller
         $userContent = $this->user->profileDetails($id);
         $plan = $this->user->getPlan($id);
         $allPlans = $this->user->getAllPlans($id);
+        $pendingPlan = $this->user->checkUserHavePendingPlan($id);
 
         if(isset($data['submitGallery']))
         {
@@ -84,7 +87,8 @@ class ProfileController extends Controller
                     'planExpire' => key_exists('expire_time', $plan[0]) ? (strtotime($plan[0]['expire_time']) ? date("Y-m-d",strtotime($plan[0]['expire_time'])) : $plan[0]['expire_time']) : '',
                     'allPlans' => $allPlans,
                     'errors' => Application::$app->getErrors(),
-                    'values' => Application::$app->request->getData()
+                    'values' => Application::$app->request->getData(),
+                    'pendingPlan' => $pendingPlan
                 ]); 
             }
             else
@@ -113,7 +117,8 @@ class ProfileController extends Controller
                     'planExpire' => key_exists('expire_time', $plan[0]) ? (strtotime($plan[0]['expire_time']) ? date("Y-m-d",strtotime($plan[0]['expire_time'])) : $plan[0]['expire_time']) : '',
                     'allPlans' => $allPlans,
                     'errors' => Application::$app->getErrors(),
-                    'values' => Application::$app->request->getData()
+                    'values' => Application::$app->request->getData(),
+                    'pendingPlan' => $pendingPlan
                 ]); 
             }
             else
@@ -138,11 +143,11 @@ class ProfileController extends Controller
         }
     }
 
-    public function buy()
+    public function buyOrUpgrade()
     {
         $data = Application::$app->request->getData();
 
-        if(key_exists('buy', $data))
+        if(key_exists('buy', $data) || key_exists('upgrade', $data) )
         {
             Application::$app->response->redirectToAnotherPage('/plan_pricing');
         }

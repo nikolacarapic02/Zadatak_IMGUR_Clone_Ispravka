@@ -20,19 +20,22 @@ class PlanController extends Controller
 
     public function index()
     {
-        if(key_exists('user', $_SESSION))
+        if(!Application::$app->isGuest())
         {
             $plan = $this->user->getPlan(Application::$app->session->getSession('user'));
+            $pendingPlan = $this->user->checkUserHavePendingPlan(Application::$app->session->getSession('user'));
         }
         else
         {
             $plan = null;
+            $pendingPlan = null;
         }
 
         return $this->view->render('plans.html', [
             'title' => 'Plan Pricing',
             'uri' => '/subscription',
-            'plan' => $plan
+            'plan' => $plan,
+            'pendingPlan' => $pendingPlan
         ]);
     }
 }

@@ -8,7 +8,7 @@
                 <div class="col-xl-1 col-lg-1 col-md-1">
                 </div>  
                 <div class="col-xl-10 col-lg-10 col-md-10 col-sm-12 mb-5 mt-5">
-                    <div class="tm-bg-gray tm-video-details mb-5">                  
+                    <div class="tm-bg-gray tm-video-details mb-5 rounded-3">                  
                         <div class="mb-4">
                             <div class="mr-4 mb-2 d-flex flex-wrap" id="Details">
                                 <span class="tm-text-gray-dark" >Gallery name: </span><span class="tm-text-primary ms-2">{{ galleryContent.0.name }}</span>
@@ -170,7 +170,7 @@
                 <hr class="underline underlineForm">
                 {% endfor %}
             {% endif %}
-            <div class="bg-light p-2">
+            <div class="bg-light p-2 rounded-3">
                 <form action = "", method = "post">
                     <div class="d-flex flex-row align-items-start"><img class="rounded-circle" src="assets/img/user.png" width="40">
                         <textarea class="form-control ml-1 shadow-none textarea" name="comment"></textarea>
