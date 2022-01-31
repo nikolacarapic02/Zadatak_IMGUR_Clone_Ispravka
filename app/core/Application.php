@@ -34,6 +34,7 @@ class Application
     public function validation($action)
     {
         $data = $this->request->getData();
+        $user = new User();
 
         if($action === 'register')
         {
@@ -116,7 +117,7 @@ class Application
             {
                 $this->errors['gallery_name'] = 'This field is required!';
             }
-            else if(!$this->user->isYourGalleryName($data['gallery_name']))
+            else if(!$user->isYourGalleryName($data['gallery_name']))
             {
                 $this->errors['gallery_name'] = "This gallery doesn't exist";
             }

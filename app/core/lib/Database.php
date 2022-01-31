@@ -513,6 +513,14 @@ class Database
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    public function checkDataValidityForPayment($subscription_id)
+    {
+        $statement = $this->pdo->prepare("SELECT * FROM payment WHERE subscription_id = '$subscription_id' AND 'data_validity' = 0");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
     //End Subscriptions
 
     //End User

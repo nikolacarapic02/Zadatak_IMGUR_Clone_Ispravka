@@ -79,8 +79,8 @@
                                 {% if errors.file != '' %} <div class="text-danger">{{ errors.file }} </div> {% endif %}
                             </div>
                             <div class="form-group tm-text-right text-center">
-                                <button type="submit" name="submitImage" class="btn btn-primary createButton {% if restriction == 1 %} disabled {% endif %}">Upload</button>
-                                {% if restriction == 1 %}
+                                <button type="submit" name="submitImage" class="btn btn-primary createButton {% if restriction %} disabled {% endif %}">Upload</button>
+                                {% if restriction %}
                                     {% if plan.0.plan == 'free' %} 
                                         <p class="mb-0">With a free plan you can upload up to 5 images monthly</p>
                                     {% elseif plan.0.plan == '1 month' %}

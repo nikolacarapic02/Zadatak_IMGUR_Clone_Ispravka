@@ -216,9 +216,9 @@ class Gallery extends Model
         }
     }
 
-    public function editGalleryByModerator($nsfw, $hidden , $id)
+    public function editGalleryByModerator($gallery_id, array $attributes)
     {
-        $gallery = Application::$app->db->getSingleGalleryWithoutRule($id);
+        $gallery = Application::$app->db->getSingleGalleryWithoutRule($gallery_id);
 
         $instance = new User();
         $user = $instance->get(Application::$app->session->getSession('user'));
@@ -226,14 +226,22 @@ class Gallery extends Model
         $nsfwOld = $gallery[0]['nsfw'];
         $hiddenOld = $gallery[0]['hidden'];
 
-        if($nsfw == '')
+        if(!key_exists('nsfw', $attributes))
         {
             $nsfw = 0;
         }
+        else
+        {
+            $nsfw = $attributes['nsfw'];
+        }
 
-        if($hidden == '')
+        if(!key_exists('hidden', $attributes))
         {
             $hidden = 0;
+        }
+        else
+        {
+            $hidden = $attributes['hidden'];
         }
 
         if($nsfw == 1 && $hidden == 1)
@@ -268,9 +276,9 @@ class Gallery extends Model
             }
         }
 
-        Application::$app->db->editGalleryByModerator($nsfw, $hidden, $id);
+        Application::$app->db->editGalleryByModerator($nsfw, $hidden, $gallery_id);
 
-        $newGallery = Application::$app->db->getSingleGalleryWithoutRule($id);
+        $newGallery = Application::$app->db->getSingleGalleryWithoutRule($gallery_id);
 
         $nsfwNew = $newGallery[0]['nsfw'];
         $hiddenNew = $newGallery[0]['hidden'];
@@ -282,37 +290,57 @@ class Gallery extends Model
         }
     }
 
-    public function editGalleryByAdmin($name, $slug, $nsfw, $hidden, $description, $id)
+    public function editGalleryByAdmin($gallery_id, array $attributes)
     {
-        $gallery = Application::$app->db->getSingleGalleryWithoutRule($id);
+        $gallery = Application::$app->db->getSingleGalleryWithoutRule($gallery_id);
 
-        if($name == '')
+        if($attributes['name'] == '')
         {
             $name = $gallery[0]['name'];
         }
+        else
+        {
+            $name = $attributes['name'];
+        }
 
-        if($description == '')
+        if($attributes['description'] == '')
         {
             $description = $gallery[0]['description'];
         }
+        else
+        {
+            $description = $attributes['description'];
+        }
 
-        if($slug == '')
+        if($attributes['slug'] == '')
         {
             $slug = $gallery[0]['slug'];
         }
+        else
+        {
+            $slug = $attributes['slug'];
+        }
 
-        if($nsfw == '')
+        if(!key_exists('nsfw', $attributes))
         {
             $nsfw = 0;
         }
+        else
+        {
+            $nsfw = $attributes['nsfw'];
+        }
    
-        if($hidden == '')
+        if(!key_exists('hidden', $attributes))
         {
             $hidden = 0;
         }
+        else
+        {
+            $hidden = $attributes['hidden'];
+        }
 
-        Application::$app->db->editGalleryByAdmin($name, $slug, $nsfw, $hidden, $description, $id);
-        $newGallery = Application::$app->db->getSingleGalleryWithoutRule($id);
+        Application::$app->db->editGalleryByAdmin($name, $slug, $nsfw, $hidden, $description, $gallery_id);
+        $newGallery = Application::$app->db->getSingleGalleryWithoutRule($gallery_id);
         $this->redis->editGalleryFromCache($gallery, $newGallery);
     }
 
@@ -364,25 +392,37 @@ class Gallery extends Model
         $this->redis->createGalleryInCache($gallery);
     }
 
-    public function editGallery($id, $name, $slug, $description)
+    public function editGallery($gallery_id, array $attributes)
     {
-        $gallery = Application::$app->db->getSingleGalleryWithoutRule($id);
+        $gallery = Application::$app->db->getSingleGalleryWithoutRule($gallery_id);
         
         if(!empty($gallery))
         {   
-            if($name == '')
+            if($attributes['new_name'] === '')
             {
                 $name = $gallery[0]['name'];
             }
+            else
+            {
+                $name = $attributes['new_name'];
+            }
 
-            if($slug == '')
+            if($attributes['slug'] === '')
             {
                 $slug = $gallery[0]['slug'];
             }
+            else
+            {
+                $slug = $attributes['slug'];
+            }
 
-            if($description == '')
+            if($attributes['description'] === '')
             {
                 $description = $gallery[0]['description'];
+            }
+            else
+            {
+                $description = $attributes['description'];
             }
 
             Application::$app->db->editGallery($name, $slug, $description, $gallery[0]['id'], Application::$app->session->getSession('user'));

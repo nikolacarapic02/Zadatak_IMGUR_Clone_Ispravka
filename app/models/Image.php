@@ -180,9 +180,9 @@ class Image extends Model
         Application::$app->db->createCommentForImage($userId, $image[0]['id'], $comment);
     }
 
-    public function editImageByModerator($nsfw, $hidden , $id)
+    public function editImageByModerator($image_id, array $attributes)
     {
-        $image = Application::$app->db->getSingleImageByIdWithoutRule($id);
+        $image = Application::$app->db->getSingleImageByIdWithoutRule($image_id);
 
         $instance = new User();
         $user = $instance->get(Application::$app->session->getSession('user'));
@@ -190,14 +190,22 @@ class Image extends Model
         $nsfwOld = $image[0]['nsfw'];
         $hiddenOld = $image[0]['hidden'];
 
-        if($nsfw == '')
+        if(!key_exists('nsfw', $attributes))
         {
             $nsfw = 0;
         }
+        else
+        {
+            $nsfw = $attributes['nsfw'];
+        }
 
-        if($hidden == '')
+        if(!key_exists('hidden', $attributes))
         {
             $hidden = 0;
+        }
+        else
+        {
+            $hidden = $attributes['hidden'];
         }
 
         if($nsfw == 1 && $hidden == 1)
@@ -232,9 +240,9 @@ class Image extends Model
             }
         }
 
-        Application::$app->db->editImageByModerator($nsfw, $hidden, $id);
+        Application::$app->db->editImageByModerator($nsfw, $hidden, $image_id);
 
-        $newImage = Application::$app->db->getSingleImageByIdWithoutRule($id);
+        $newImage = Application::$app->db->getSingleImageByIdWithoutRule($image_id);
 
         $nsfwNew = $newImage[0]['nsfw'];
         $hiddenNew = $newImage[0]['hidden'];
@@ -246,39 +254,51 @@ class Image extends Model
         }
     }
 
-    public function editImageByAdmin($file_name, $slug, $nsfw, $hidden, $id)
+    public function editImageByAdmin($image_id, array $attributes)
     {
-        $image = Application::$app->db->getSingleImageByIdWithoutRule($id);
+        $image = Application::$app->db->getSingleImageByIdWithoutRule($image_id);
         $oldName = $image[0]['file_name'];
         $format = substr($image[0]['file_name'], strpos($image[0]['file_name'], ".") + 1);
 
-        if($file_name != '')
-        {
-            $file_name = $file_name . '.' . $format;
-        }
-        else
+        if($attributes['file_name'] == '')
         {
             $file_name = $image[0]['file_name'];
         }
+        else
+        {
+            $file_name = $attributes['file_name'] . '.' . $format;
+        }
 
-        if($slug == '')
+        if($attributes['slug'] == '')
         {
             $slug = $image[0]['slug'];
         }
+        else
+        {
+            $slug = $attributes['slug'];
+        }
 
-        if($nsfw == '')
+        if(!key_exists('nsfw', $attributes))
         {
             $nsfw = 0;
         }
+        else
+        {
+            $nsfw = $attributes['nsfw'];
+        }
    
-        if($hidden == '')
+        if(!key_exists('hidden', $attributes))
         {
             $hidden = 0;
         }
+        else
+        {
+            $hidden = $attributes['hidden'];
+        }
         
 
-        Application::$app->db->editImageByAdmin($file_name, $slug, $nsfw, $hidden, $id);
-        $newImage = Application::$app->db->getSingleImageByIdWithoutRule($id);
+        Application::$app->db->editImageByAdmin($file_name, $slug, $nsfw, $hidden, $image_id);
+        $newImage = Application::$app->db->getSingleImageByIdWithoutRule($image_id);
         $this->redis->editImageFromCache($image, $newImage);
 
         if(file_exists("uploads/$oldName"))
@@ -351,24 +371,28 @@ class Image extends Model
         Application::$app->db->AddToTableImageGallery($image[0]['id'], $gallery[0]['id']);
     }
 
-    public function editImage($id, $name, $slug)
+    public function editImage($image_id, array $attributes)
     {
-        $image = Application::$app->db->getSingleImageByIdWithoutRule($id);
+        $image = Application::$app->db->getSingleImageByIdWithoutRule($image_id);
         $oldName = $image[0]['file_name'];
         $format = substr($image[0]['file_name'], strpos($image[0]['file_name'], ".") + 1);
         
         if(!empty($image))
         {   
-            if($name != '')
+            if($attributes['new_name'] != '')
             {
-                $name = $name . '.' . $format;
+                $name = $attributes['new_name'] . '.' . $format;
             }
             else
             {
                 $name = $image[0]['file_name'];
             }
 
-            if($slug == '')
+            if($attributes['slug'] != '')
+            {
+                $slug = $attributes['slug'];
+            }
+            else
             {
                 $slug = $image[0]['slug'];
             }

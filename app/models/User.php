@@ -42,60 +42,6 @@ class User extends Model implements SubscriptionInterface
         $this->redis->clearFromHash('/profile', 'user');
     }
 
-    public function subscribe(array $attributes)
-    {
-        $this->pay($attributes);
-
-        Application::$app->db->subscribeToPlan(Application::$app->session->getSession('user'), $attributes);
-    }
-
-    public function upgrade(array $attributes)
-    {
-        $this->pay($attributes);
-
-        Application::$app->db->upgradeExistingPlan(Application::$app->session->getSession('user'), $attributes);
-    }
-
-    public function pay(array $attributes)
-    {
-        if($attributes['method'] === 'paypal')
-        {
-            $paypal = new PayPal();
-            $paypal->checkAccount($attributes['paypal_mail']);
-            $paypal->makePayment();
-        }
-        else if($attributes['method'] === 'crypto')
-        {
-            $crypto = new Crypto();
-            $crypto->checkAccount($attributes['crypto_mail']);
-            $crypto->makePayment();
-        }
-        else
-        {
-            if($attributes['card_type'] === 'visa')
-            {
-                $card = new VisaCard();
-            }
-            else if($attributes['card_type'] === 'mastercard')
-            {
-                $card = new MasterCard();
-            }
-            else
-            {
-                $card = new AmericanExpress();
-            }
-
-            $payment = new PaymentAdapter($card, $attributes);
-            $payment->checkPayment($attributes);
-            $payment->makePayment();
-        }
-    }
-
-    public function cancelSubscription($user_id)
-    {
-        Application::$app->db->cancelSubscriptionForUser($user_id);
-    }
-
     public function get($id)
     {
         $this->user = Application::$app->db->getUser($id);
@@ -314,6 +260,60 @@ class User extends Model implements SubscriptionInterface
 
     // Subscription
 
+    public function subscribe(array $attributes)
+    {
+        $this->pay($attributes);
+
+        Application::$app->db->subscribeToPlan(Application::$app->session->getSession('user'), $attributes);
+    }
+
+    public function upgrade(array $attributes)
+    {
+        $this->pay($attributes);
+
+        Application::$app->db->upgradeExistingPlan(Application::$app->session->getSession('user'), $attributes);
+    }
+
+    public function pay(array $attributes)
+    {
+        if($attributes['method'] === 'paypal')
+        {
+            $paypal = new PayPal();
+            $paypal->checkAccount($attributes['paypal_mail']);
+            $paypal->makePayment();
+        }
+        else if($attributes['method'] === 'crypto')
+        {
+            $crypto = new Crypto();
+            $crypto->checkAccount($attributes['crypto_mail']);
+            $crypto->makePayment();
+        }
+        else
+        {
+            if($attributes['card_type'] === 'visa')
+            {
+                $card = new VisaCard();
+            }
+            else if($attributes['card_type'] === 'mastercard')
+            {
+                $card = new MasterCard();
+            }
+            else
+            {
+                $card = new AmericanExpress();
+            }
+
+            $payment = new PaymentAdapter($card, $attributes);
+            $payment->checkPayment($attributes);
+            $payment->makePayment();
+        }
+    }
+
+    public function cancelSubscription($user_id)
+    {
+        Application::$app->db->cancelSubscriptionForUser($user_id);
+    }
+    
     public function getPlan($user_id)
     {
         $value = Application::$app->db->getPlanInfo($user_id);
@@ -397,7 +397,7 @@ class User extends Model implements SubscriptionInterface
 
                 if($countOfImages[0]['num'] >= 5)
                 {
-                    return 1;
+                    return true;
                 }
             }
             else
@@ -410,7 +410,7 @@ class User extends Model implements SubscriptionInterface
 
                 if($countOfImages[0]['num'] >= 5)
                 {
-                    return 1;
+                    return true;
                 }
             }
         }
@@ -424,21 +424,21 @@ class User extends Model implements SubscriptionInterface
             {
                 if($countOfImages[0]['num'] >= 20)
                 {
-                    return 1;
+                    return true;
                 }
             }
             else if($this->plan[0]['plan'] == '6 months')
             {
                 if($countOfImages[0]['num'] >= 30)
                 {
-                    return 1;
+                    return true;
                 }
             }
             else if($this->plan[0]['plan'] == '12 months')
             {
                 if($countOfImages[0]['num'] >= 50)
                 {
-                    return 1;
+                    return true;
                 }
             }
         }
@@ -449,6 +449,20 @@ class User extends Model implements SubscriptionInterface
         $value = Application::$app->db->getPendingPlanInfo($user_id);
         
         if(!empty($value))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public function checkDataValidity($plan)
+    {
+        $value = Application::$app->db->checkDataValidityForPayment($plan[0]['id']);
+
+        if(empty($value))
         {
             return true;
         }

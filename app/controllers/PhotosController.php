@@ -63,34 +63,12 @@ class PhotosController extends Controller
                 {
                     if(!empty($data))
                     {
-                        if(!empty($data['new_name']) && !empty($data['slug']))
-                        {
-                            $this->images->editImage($id, $data['new_name'], $data['slug']);
-                        }
-                        else
-                        {
-                            if(!empty($data['new_name']))
-                            {
-                                $newName = $data['new_name'];
-                            }
-                            else
-                            {
-                                $newName = '';
-                            }
-
-                            if(!empty($data['slug']))
-                            {
-                                $slug = $data['slug'];
-                            }
-                            else
-                            {
-                                $slug = '';
-                            }
-                            
-                            $this->images->editImage($id, $newName, $slug);
+                        if(isset($data['submit']))
+                        {  
+                            $this->images->editImage($id, $data);
                         }
 
-                        if(!empty($data['delete']))
+                        if(isset($data['delete']))
                         {
                             $this->images->deleteImage($id);
                             Application::$app->response->redirectToAnotherPage('/');
@@ -101,30 +79,8 @@ class PhotosController extends Controller
                 if($this->user->isModerator(Application::$app->session->getSession('user')) && !$this->user->isYourImage($id))
                 {
                     if(isset($data['submit']))
-                    {
-                        if(key_exists('nsfw', $data) || key_exists('hidden', $data))
-                        {
-                            if(!empty($data['nsfw']) && !empty($data['hidden']))
-                            {
-                                $this->images->editImageByModerator($data['nsfw'], $data['hidden'], $id);
-                            }
-                            else
-                            {
-                                if(!empty($data['nsfw']))
-                                {
-                                    $this->images->editImageByModerator($data['nsfw'], '', $id);
-                                }
-                            
-                                if(!empty($data['hidden']))
-                                {
-                                    $this->images->editImageByModerator('', $data['hidden'], $id);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            $this->images->editImageByModerator('', '', $id);
-                        }
+                    {  
+                        $this->images->editImageByModerator($id, $data);
                     }
                 }
 
@@ -132,57 +88,7 @@ class PhotosController extends Controller
                 {
                     if(isset($data['submit']))
                     {
-                        if(key_exists('file_name', $data) || key_exists('slug', $data) || key_exists('nsfw', $data) || key_exists('hidden', $data))
-                        {
-                            if(!empty($data['file_name']) && !empty($data['slug']) && !empty($data['nsfw']) && !empty($data['hidden']))
-                            {
-                                $this->images->editImageByAdmin($data['file_name'], $data['slug'], $data['nsfw'], $data['hidden'], $id);
-                            }
-                            else
-                            {
-                                if(!empty($data['file_name']))
-                                {
-                                    $fileName = $data['file_name'];
-                                }
-                                else
-                                {
-                                    $fileName = '';
-                                }
-                            
-                                if(!empty($data['slug']))
-                                {
-                                    $slug = $data['slug'];
-                                }
-                                else
-                                {
-                                    $slug = '';
-                                }
-                            
-                                if(!empty($data['nsfw']))
-                                {
-                                    $nsfw = $data['nsfw'];
-                                }
-                                else
-                                {
-                                    $nsfw = '';
-                                }
-                            
-                                if(!empty($data['hidden']))
-                                {
-                                    $hidden = $data['hidden'];
-                                }
-                                else
-                                {
-                                    $hidden = '';
-                                }
-                            
-                                $this->images->editImageByAdmin($fileName, $slug, $nsfw, $hidden, $id);
-                            }
-                        }
-                        else
-                        {
-                            $this->images->editImageByAdmin('', '', '', '', $id);
-                        }
+                        $this->images->editImageByAdmin($id, $data);
                     }
                 }
             }

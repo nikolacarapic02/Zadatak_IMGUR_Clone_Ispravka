@@ -61,15 +61,12 @@
                 <div class="collapse mt-2" id="collapseExample2">
                     <form action = "", method = "post">
                         <div class="btn-group" data-toggle="buttons">
-
                             <label class="btn  form-check-label">
                                 <input type="checkbox"  autocomplete="off" name="nsfw" value="1" {% if image.isNsfw(id) %} checked {% endif %}> <span class="checkText">NSFW</span>
                             </label>
-
                             <label class="btn form-check-label">
                                 <input type="checkbox"  autocomplete="off" name="hidden" value="1" {% if image.isHidden(id) %} checked {% endif %}> <span class="checkText">Hidden</span>
                             </label>
-
                         </div>
                         <div class="form-group tm-text-right">
                             <button type="submit" class="btn btn-primary" name="submit" >Done</button>

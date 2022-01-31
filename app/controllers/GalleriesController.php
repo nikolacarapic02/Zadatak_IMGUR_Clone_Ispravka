@@ -61,45 +61,12 @@ class GalleriesController extends Controller
             {
                 if(!empty($data))
                 {
-                    if(!empty($data['new_name']) && !empty($data['slug']) && !empty($data['description']))
+                    if(isset($data['submit']))
                     {
-                        $this->galleries->editGallery($id, $data['new_name'], $data['slug'], $data['description']);
-        
-                    }
-                    else
-                    {
-                        if(!empty($data['new_name']))
-                        {
-                            $newName = $data['new_name'];
-                        }
-                        else
-                        {
-                            $newName = '';
-                        }
-
-                        if(!empty($data['slug']))
-                        {
-                            $slug = $data['slug'];
-                        }
-                        else
-                        {
-                            $slug = '';
-                        }
-
-                        if(!empty($data['description']))
-                        {
-                            $description = $data['description'];
-                        }
-                        else
-                        {
-                            $description = '';
-                        }
-
-                        $this->galleries->editGallery($id, $newName, $slug, $description);
-        
+                        $this->galleries->editGallery($id, $data);
                     }
 
-                    if(!empty($data['delete']))
+                    if(isset($data['delete']))
                     {
                         $this->galleries->deleteGallery($id);
                         Application::$app->response->redirectToAnotherPage('/');
@@ -111,33 +78,7 @@ class GalleriesController extends Controller
             {
                 if(isset($data['submit']))
                 {
-                    if(key_exists('nsfw',$data) || key_exists('hidden', $data))
-                    {
-                        if(!empty($data['nsfw']) && !empty($data['hidden']))
-                        {
-                            $this->galleries->editGalleryByModerator($data['nsfw'], $data['hidden'], $id);
-            
-                        }
-                        else
-                        {
-                            if(!empty($data['nsfw']))
-                            {
-                                $this->galleries->editGalleryByModerator($data['nsfw'], '', $id);
-                
-                            }
-                        
-                            if(!empty($data['hidden']))
-                            {
-                                $this->galleries->editGalleryByModerator('', $data['hidden'], $id);
-                
-                            }
-                        }
-                    }
-                    else
-                    {
-                        $this->galleries->editGalleryByModerator('', '', $id);
-        
-                    }
+                    $this->galleries->editGalleryByModerator($id, $data);
                 }
             }
 
@@ -145,69 +86,7 @@ class GalleriesController extends Controller
             {
                 if(isset($data['submit']))
                 {
-                    if(key_exists('name', $data) || key_exists('slug', $data) || key_exists('nsfw', $data) || key_exists('hidden', $data) || key_exists('description', $data))
-                    {
-                        if(!empty($data['name']) && !empty($data['slug']) && !empty($data['nsfw']) && !empty($data['hidden']) && !empty($data['description']))
-                        {
-                            $this->galleries->editGalleryByAdmin($data['name'], $data['slug'], $data['nsfw'], $data['hidden'], $data['description'], $id);
-            
-                        }
-                        else
-                        {
-                            if(!empty($data['name']))
-                            {
-                                $name = $data['name'];
-                            }
-                            else
-                            {
-                                $name = '';
-                            }
-                        
-                            if(!empty($data['slug']))
-                            {
-                                $slug = $data['slug'];
-                            }
-                            else
-                            {
-                                $slug = '';
-                            }
-                        
-                            if(!empty($data['nsfw']))
-                            {
-                                $nsfw = $data['nsfw'];
-                            }
-                            else
-                            {
-                                $nsfw = '';
-                            }
-                        
-                            if(!empty($data['hidden']))
-                            {
-                                $hidden = $data['hidden'];
-                            }
-                            else
-                            {
-                                $hidden = '';
-                            }
-                        
-                            if(!empty($data['description']))
-                            {
-                                $description = $data['description'];
-                            }
-                            else
-                            {
-                                $description = '';
-                            }
-                        
-                            $this->galleries->editGalleryByAdmin($name, $slug, $nsfw, $hidden, $description, $id);
-            
-                        }
-                    }
-                    else
-                    {
-                        $this->galleries->editGalleryByAdmin('', '', '', '', '', $id);
-        
-                    }
+                    $this->galleries->editGalleryByAdmin($id, $data);
                 }
             }
         }
