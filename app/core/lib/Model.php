@@ -5,6 +5,7 @@ namespace app\core\lib;
 use app\cache\Cache;
 use app\models\User;
 use app\core\Application;
+use app\models\Banner;
 use app\models\Gallery;
 use app\models\Image;
 
@@ -18,7 +19,7 @@ class Model
     {
         $this->redis = new Cache();
 
-        if($model instanceof Image || $model instanceof Gallery)
+        if($model instanceof Image || $model instanceof Gallery || $model instanceof Banner)
         {
             $this->uri = Application::$app->request->getPath();
             $this->page = $this->checkPage($model);
@@ -78,6 +79,14 @@ class Model
             {
                 $num = Application::$app->db->getNumOfImages();
             }
+
+            return ceil($num[0]['num']/18);
+        }
+        else if($model instanceof Banner)
+        {
+            $num = Application::$app->db->getNumOfTestingBanners();
+
+            return ceil($num[0]['num']/10);
         }
         else
         {
@@ -89,11 +98,9 @@ class Model
             {
                 $num = Application::$app->db->getNumOfGalleries();
             }
+
+            return ceil($num[0]['num']/18);
         }
-
-        $numImg = $num[0]['num'];
-
-        return ceil($numImg/16);
     }
 
     public function numOfUserPages($model, $id)
@@ -124,9 +131,7 @@ class Model
             }
         }
 
-        $numImg = $num[0]['num'];
-
-        return ceil($numImg/8);
+        return ceil($num[0]['num']/12);
     }
 
     public function checkContentToLoad()

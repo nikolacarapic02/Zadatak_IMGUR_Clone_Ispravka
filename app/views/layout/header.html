@@ -43,8 +43,9 @@
                             </button>
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                 <a class="dropdown-item" href="/profile">Profile</a>
-                                {% if _app.user.isAdmin(_app.session.getSession('user')) %}
-                                <a class="dropdown-item" href="/moderator_logging">Moderator Logging</a>  
+                                {% if _app.isAdminUser() %}
+                                <a class="dropdown-item" href="/moderator_logging">Moderator Logging</a>
+                                <a class="dropdown-item" href="/banner_analytics">Banner Analytics</a>  
                                 {% endif %}
                                 <a class="dropdown-item" href="/logout">Log out</a>
                             </div>
@@ -55,3 +56,25 @@
         </div>
     </div>
 </nav>
+<div id="wrapper">
+    {% for value in _banner %}
+        {% if value.position == 'header' %}
+            {{ include('layout/banners/horizontal_banner.html', {'banner': value}) }}
+        {% endif %}
+    {% endfor %}
+</div>
+{% if _uri == '/' %}
+<div id="carouselExampleSlidesOnly" class="carousel slide" data-mdb-ride="carousel">
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <img
+        src="assets/img/carousel.jpeg"
+        class="d-block w-100"
+        />
+    </div>
+    <div class="carousel-caption d-none d-md-block">
+        <h3>Make your day better</h3>
+        <p>Upload some of your favorite pictures and share them with others</p>
+    </div>
+</div>
+{% endif %}

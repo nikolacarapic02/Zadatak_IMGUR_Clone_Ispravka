@@ -2,12 +2,14 @@
 
 namespace app\core;
 
+use app\core\lib\Advertisement;
 use app\models\User;
 use app\core\lib\Request;
 use app\core\lib\Session;
 use Bramus\Router\Router;
 use app\core\lib\Database;
 use app\core\lib\Response;
+use app\models\Banner;
 
 class Application
 {
@@ -233,15 +235,26 @@ class Application
         }
     }
 
+    public function isAdminUser()
+    {
+        if($this->session->getSession('admin') === 1)
+        {
+            return true;
+        }
+    }
+
     public function displayUserName()
     {
         $user = new User();
         $registeredUser = $user->get($this->session->getSession('user'));
 
-        if(!$this->isGuest())
-        {
-            return $registeredUser[0]['username'];
-        }
+        return $registeredUser[0]['username'];
     }
 
+    public function generateBanners()
+    {
+        $banner = new Banner();
+
+        return $banner->generateBanners();
+    }
 }

@@ -128,11 +128,22 @@
             </div>  
             {% endfor %}
         {% endif %}
-        <div class="tm-mb-90">
+        <div class="tm-mb-30">
             <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
                 <a href="/user_photos?id={{ userContent.0.id }}" class="btn btn-primary tm-btn moreButton {% if imageContent is empty %} disabled {% endif %}"><span class="fas fa-plus"></span>  More</a>
             </div>            
         </div>   
+    </div>
+    <div class="container-fluid mt-5">
+        <div class="row">
+          {% for value in _banner %}
+            {% if value.position == 'content' %}
+              <div class="col-xl-6 col-lg-6 col-md-12 text-center">
+                {{ include('layout/banners/grid_banner.html', {'banner':value}) }}
+              </div>
+            {% endif %} 
+          {% endfor %}
+        </div>
     </div>
     <div class="row tm-mb-30 tm-gallery">
         <div class="container-fluid tm-container-content tm-mt-30">

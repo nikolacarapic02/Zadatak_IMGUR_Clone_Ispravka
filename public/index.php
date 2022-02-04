@@ -7,11 +7,13 @@ use Twig\Loader\FilesystemLoader;
 use app\controllers\AuthController;
 use app\controllers\HomeController;
 use app\controllers\AboutController;
+use app\controllers\BannerAnalyticsController;
 use app\controllers\PhotosController;
 use app\controllers\ProfileController;
 use app\controllers\GalleriesController;
 use app\controllers\ModeratorLoggingController;
 use app\controllers\PlanController;
+use app\models\Banner;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -33,6 +35,8 @@ $app = new Application($config);
 
 $twig->addGlobal('_session', $app->session);
 $twig->addGlobal('_app', $app);
+$twig->addGlobal('_uri', $app->request->getPath());
+$twig->addGlobal('_banner', $app->generateBanners());
 
 $app->router->set404(function() use ($twig){
     echo $twig->render('_error.html', [
@@ -127,6 +131,11 @@ $app->router->get('/subscription', function() use ($twig){
     echo $controller->index();
 });
 
+$app->router->get('/banner_analytics', function() use ($twig){
+    $controller = new BannerAnalyticsController($twig);
+    echo $controller->index();
+});
+
 //POST
 
 $app->router->post('/login', function() use ($twig){
@@ -167,6 +176,12 @@ $app->router->post('/gallery_details', function() use ($twig){
 $app->router->post('/subscription', function() use ($twig){
     $controller = new AuthController($twig);
     echo $controller->subscription();
+});
+
+$app->router->post('/banner_analytics', function() use ($twig){
+    $controller = new BannerAnalyticsController($twig);
+    echo $controller->create();
+    echo $controller->update();
 });
 
 try

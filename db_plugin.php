@@ -26,4 +26,7 @@ $db->createTableModeratorLogging();
 $db->createTableSubscription();
 $db->createTablePayment();
 $db->addCreateTimeToImage();
+$db->createTableBanner();
+$db->createTableBannerTesting();
+$db->createTableTestingFields();
 $db->optimizeDatabase();

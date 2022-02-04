@@ -134,6 +134,7 @@ class AuthController extends Controller
         else
         {
             Application::$app->session->setSession('user', $user[0]['id']);
+            $this->user->isAdmin($user[0]['id']) ? Application::$app->session->setSession('admin', 1) : Application::$app->session->setSession('admin', 0);
             Application::$app->response->redirectToAnotherPage('/profile');
         }
     }

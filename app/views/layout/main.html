@@ -22,10 +22,32 @@
         {% include('layout/header.html') %}
     </div>
 
-    <div id="wrapper">
-        {% block content %}{% endblock %}
+    <div class="container-fluid">
+        {% set banner_restriction = ['/profile', '/user_profile', '/photo_details', '/gallery_details', '/plan_pricing', '/about', '/moderator_logging', '/banner_analytics'] %}
+        <div class="row">
+            {% if _uri in banner_restriction %}
+                {{ block('content') }}
+            {% else %}
+                <div class="col-xl-2 col-lg-2 col-md-12">
+                    {% for value in _banner %}
+                        {% if value.position == 'left' %}
+                            {{ include('layout/banners/vertical_banner.html', {'banner': value}) }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="col-xl-8 col-lg-8 col-md-12">
+                    {{ block('content') }}
+                </div>
+                <div class="col-xl-2 col-lg-2 col-md-12">
+                    {% for value in _banner %}
+                        {% if value.position == 'right' %}
+                            {{ include('layout/banners/vertical_banner.html', {'banner': value}) }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
     </div>
-
 
     <div id="footer">
         {% include('layout/footer.html') %}

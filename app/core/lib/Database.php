@@ -44,7 +44,7 @@ class Database
 
     public function createTableModeratorLogging()
     {
-        $statement = $this->pdo->prepare("CREATE TABLE moderator_logging(
+        $statement = $this->pdo->prepare("CREATE TABLE IF NOT EXISTS moderator_logging(
             moderator_id int(11) NOT NULL,
             image_id int(11) DEFAULT NULL,
             gallery_id int(11) DEFAULT NULL,
@@ -84,7 +84,7 @@ class Database
 
     public function createTableSubscription()
     {
-        $statement = $this->pdo->prepare("CREATE TABLE subscription(
+        $statement = $this->pdo->prepare("CREATE TABLE IF NOT EXISTS subscription(
             id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
             user_id int(11) NOT NULL,
             user_email varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -102,7 +102,7 @@ class Database
 
     public function createTablePayment()
     {
-        $statement = $this->pdo->prepare("CREATE TABLE payment(
+        $statement = $this->pdo->prepare("CREATE TABLE IF NOT EXISTS payment(
             id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
             subscription_id int(11) NOT NULL,
             amount varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -123,6 +123,56 @@ class Database
     public function addCreateTimeToImage()
     {
         $statement = $this->pdo->prepare("ALTER TABLE image ADD COLUMN create_time timestamp NOT NULL DEFAULT '2022-01-01 00:00:00'");
+        $statement->execute();
+    }
+
+    public function createTableBanner()
+    {
+        $statement = $this->pdo->prepare("CREATE TABLE IF NOT EXISTS banner(
+            id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+            name varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+            title varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+            content longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+            link varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+            image varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+            status enum('active', 'inactive') NOT NULL DEFAULT 'active',
+            date date NOT NULL DEFAULT '2022-01-01'
+        )");
+
+        $statement->execute();
+    }
+
+    public function createTableBannerTesting()
+    {
+        $statement = $this->pdo->prepare("CREATE TABLE IF NOT EXISTS testing_banner(
+            banner_id int(11) NOT NULL,
+            views int(32) DEFAULT 0,
+            clicks int(32) DEFAULT 0,
+            date date NOT NULL DEFAULT '2022-01-01',
+            FOREIGN KEY (banner_id) REFERENCES banner(id)
+        )");
+
+        $statement->execute();
+    }
+
+    public function createTableTestingFields()
+    {
+        $statement = $this->pdo->prepare("CREATE TABLE IF NOT EXISTS testing_field(
+            banner_id int(11) NOT NULL,
+            header_views int(32) DEFAULT 0,
+            header_clicks int(32) DEFAULT 0,
+            footer_views int(32) DEFAULT 0,
+            footer_clicks int(32) DEFAULT 0,
+            left_views int(32) DEFAULT 0,
+            left_clicks int(32) DEFAULT 0,
+            right_views int(32) DEFAULT 0,
+            right_clicks int(32) DEFAULT 0,
+            in_content_views int(32) DEFAULT 0,
+            in_content_clicks int(32) DEFAULT 0,
+            date date NOT NULL DEFAULT '2022-01-01',
+            FOREIGN KEY (banner_id) REFERENCES banner(id)
+        )");
+
         $statement->execute();
     }
 
@@ -529,7 +579,7 @@ class Database
 
     public function getImagesForPage($page)
     {
-        $limit = 16;
+        $limit = 18;
         if(empty($page))
         {
             $page = 1;
@@ -544,7 +594,7 @@ class Database
 
     public function getAllImagesForPage($page)
     {
-        $limit = 16;
+        $limit = 18;
         if(empty($page))
         {
             $page = 1;
@@ -657,7 +707,7 @@ class Database
 
     public function getImagesForUser($user_id, $page)
     {
-        $limit = 8;
+        $limit = 12;
         if(empty($page))
         {
             $page = 1;
@@ -672,7 +722,7 @@ class Database
 
     public function getAllImagesForUser($user_id, $page)
     {
-        $limit = 8;
+        $limit = 12;
         if(empty($page))
         {
             $page = 1;
@@ -743,7 +793,7 @@ class Database
 
     public function getGalleriesForPage($page)
     {
-        $limit = 16;
+        $limit = 18;
         if(empty($page))
         {
             $page = 1;
@@ -758,7 +808,7 @@ class Database
 
     public function getAllGaleriesForPage($page)
     {
-        $limit = 16;
+        $limit = 18;
         if(empty($page))
         {
             $page = 1;
@@ -861,7 +911,7 @@ class Database
 
     public function getGalleriesForUser($user_id, $page)
     {
-        $limit = 8;
+        $limit = 12;
         if(empty($page))
         {
             $page = 1;
@@ -876,7 +926,7 @@ class Database
 
     public function getAllGalleriesForUser($user_id, $page)
     {
-        $limit = 8;
+        $limit = 12;
         if(empty($page))
         {
             $page = 1;
@@ -927,4 +977,121 @@ class Database
 
 
     //End Gallery
+
+    //Banners
+
+    public function getAllBanners()
+    {
+        $statement = $this->pdo->prepare("SELECT * FROM banner WHERE status = 'active'");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function getSingleBanner($banner_id)
+    {
+        $statement = $this->pdo->prepare("SELECT * FROM banner WHERE id = '$banner_id' AND status = 'active'");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function createBanner($attributes)
+    {
+
+    }
+
+    public function addToBannerTesting($banner_id)
+    {
+        $statement1 = $this->pdo->prepare("INSERT INTO testing_banner(banner_id, date) SELECT id, NOW() FROM banner WHERE id = '$banner_id' AND id NOT IN (SELECT banner_id FROM testing_banner WHERE date = CURDATE())");
+        $statement1->execute();
+
+        $statement2 = $this->pdo->prepare("INSERT INTO testing_field(banner_id, date) SELECT id, NOW() FROM banner WHERE id = '$banner_id' AND id NOT IN (SELECT banner_id FROM testing_field WHERE date = CURDATE())");
+        $statement2->execute();
+    }
+
+    public function countViewsOfBanner($banner_id, $position)
+    {
+        $statement1 = $this->pdo->prepare("UPDATE testing_banner SET views = views + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        $statement1->execute();
+
+        if($position === 'header')
+        {
+            $statement2 = $this->pdo->prepare("UPDATE testing_field SET header_views = header_views + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        }
+        else if($position === 'footer')
+        {
+            $statement2 = $this->pdo->prepare("UPDATE testing_field SET footer_views = footer_views + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        }
+        else if($position === 'left')
+        {
+            $statement2 = $this->pdo->prepare("UPDATE testing_field SET left_views = left_views + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        }
+        else if($position === 'right')
+        {
+            $statement2 = $this->pdo->prepare("UPDATE testing_field SET right_views = right_views + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        }
+        else
+        {
+            $statement2 = $this->pdo->prepare("UPDATE testing_field SET in_content_views = in_content_views + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        }
+
+        $statement2->execute();
+    }
+
+    public function countClicksOfBanner($banner_id, $position)
+    {
+        $statement1 = $this->pdo->prepare("UPDATE testing_banner SET clicks = clicks + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        $statement1->execute();
+
+        if($position === 'header')
+        {
+            $statement2 = $this->pdo->prepare("UPDATE testing_field SET header_clicks = header_clicks + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        }
+        else if($position === 'footer')
+        {
+            $statement2 = $this->pdo->prepare("UPDATE testing_field SET footer_clicks = footer_clicks + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        }
+        else if($position === 'left')
+        {
+            $statement2 = $this->pdo->prepare("UPDATE testing_field SET left_clicks = left_clicks + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        }
+        else if($position === 'right')
+        {
+            $statement2 = $this->pdo->prepare("UPDATE testing_field SET right_clicks = right_clicks + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        }
+        else
+        {
+            $statement2 = $this->pdo->prepare("UPDATE testing_field SET in_content_clicks = in_content_clicks + 1 WHERE banner_id = '$banner_id' AND date = CURDATE()");
+        }
+
+        $statement2->execute();
+    }
+
+    public function getAnalyticsOfBanners($page)
+    {
+        $limit = 10;
+        if(empty($page))
+        {
+            $page = 1;
+        }
+        $start = ($page-1) * $limit;
+        
+        $statement = $this->pdo->prepare("SELECT tb.banner_id, tb.views as 'total_views', tb.clicks as 'total_clicks', tf.header_views, tf.header_clicks, tf.footer_views, tf.footer_clicks, tf.left_views, tf.left_clicks, tf.right_views, tf.right_clicks, tf.in_content_views, tf.in_content_clicks, tf.date
+        FROM testing_banner tb
+        INNER JOIN testing_field tf ON tf.banner_id = tb.banner_id AND tf.date = tb.date ORDER BY tf.date DESC, tb.banner_id LIMIT $start, $limit");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function getNumOfTestingBanners()
+    {
+        $statement = $this->pdo->prepare("SELECT COUNT(*) as 'num' FROM testing_banner");
+        $statement->execute();
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    //End Banners
 }

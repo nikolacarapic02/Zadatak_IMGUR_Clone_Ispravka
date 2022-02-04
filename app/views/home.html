@@ -6,19 +6,6 @@
   </div>
 {% endif %}
 {{ _session.unsetSession('register') }}
-<div id="carouselExampleSlidesOnly" class="carousel slide" data-mdb-ride="carousel">
-  <div class="carousel-inner">
-    <div class="carousel-item active">
-      <img
-        src="assets/img/carousel.jpeg"
-        class="d-block w-100"
-      />
-    </div>
-    <div class="carousel-caption d-none d-md-block">
-          <h3>Make your day better</h3>
-          <p>Upload some of your favorite pictures and share them with others</p>
-    </div>
-</div>
 <div class="container-fluid tm-container-content tm-mt-60">
   <div class="row mb-1">
       <h2 class="col-6 tm-text-primary">
@@ -29,7 +16,7 @@
   <div class="row tm-mb-10 tm-gallery">
   {% for image in imageContent %}
     {% set user = userContent.get(image.user_id) %}
-    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-5">
+    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mb-5">
       <figure class="effect-ming tm-video-item">
           <img src="uploads/{{ image.file_name }}" alt="Image" class="img-fluid">
           <figcaption class="d-flex align-items-center justify-content-center">
@@ -50,6 +37,17 @@
       </div>            
   </div>
 </div> 
+<div class="container-fluid">
+  <div class="row">
+    {% for value in _banner %}
+      {% if value.position == 'content' %}
+        <div class="col-xl-6 col-lg-6 col-md-12 text-center">
+          {{ include('layout/banners/grid_banner.html', {'banner':value}) }}
+        </div>
+      {% endif %} 
+    {% endfor %}
+  </div>
+</div>
 <div class="container-fluid tm-container-content tm-mt-60">
   <div class="row mb-1">
       <h2 class="col-6 tm-text-primary">
@@ -60,7 +58,7 @@
   <div class="row tm-mb-10 tm-gallery">
   {% for gallery in galleryContent %}
     {% set user = userContent.get(gallery.user_id) %}
-    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-5">
+    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mb-5">
       <figure class="effect-ming tm-video-item">
           <img src="assets/img/gallery.jpg" alt="Image" class="img-fluid">
           <figcaption class="d-flex align-items-center justify-content-center">

@@ -38,7 +38,7 @@ for($i = 0; $i < count($allUsers); $i++)
         {
             $user->changePlanStatus($plan[0]['id'], 'inactive');
         }
-        else if($user->checkDataValidity($plan[0]['id']))
+        else if(!$user->checkDataValidity($plan[0]['id']))
         {   
             $user->changePlanStatus($plan[0]['id'], 'inactive');
         }

@@ -39,6 +39,7 @@ class User extends Model implements SubscriptionInterface
     public function logout()
     {
         Application::$app->session->unsetSession('user');
+        Application::$app->session->unsetSession('admin');
         $this->redis->clearFromHash('/profile', 'user');
     }
 

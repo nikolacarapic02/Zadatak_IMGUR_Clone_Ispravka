@@ -1,0 +1,15 @@
+<form action="{{ banner.link }}" method="post">
+    <button type="submit" class="banner-button" >
+        <div class="grid-banner text-center mb-5">
+            <a href="{{ banner.link }}">
+                <div class="grid-banner-body">
+                    <h2>{{ banner.title }}</h2> 
+                    <p>{{ banner.content }}</p>
+                    <span class="btn btn-primary">Click Here</span>
+                </div>    
+                <img src="/assets/banner_img/{{ banner.image }}" alt="" class="grid-banner-cover img-responsive">
+            </a>
+            <div class="ad-label">Ad</div>
+        </div>
+    </button>
+</form>
